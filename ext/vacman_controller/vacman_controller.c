@@ -2,16 +2,15 @@
 #include <string.h>
 #include <aal2sdk.h>
 
-
-static VALUE e_vacmanerror;													// our ruby exception type
-TKernelParms   KernelParms;													// Kernel Params
+static VALUE e_vacmanerror;  // our ruby exception type
+TKernelParms   KernelParms;  // Kernel Params
 
 /*
  * raise an error and tell wich method failed with wich error code
  */
 void raise_error(char* method, int error_code) {
-	char buffer[256];
-	AAL2GetErrorMsg (error_code, buffer);
+  char buffer[256];
+  AAL2GetErrorMsg (error_code, buffer);
   rb_raise(e_vacmanerror, "%s: %s", method, buffer);
 }
 
@@ -29,7 +28,7 @@ static void rbhash_to_digipass(VALUE data, TDigipassBlob* dpdata) {
   VALUE flag2 = rb_hash_aref(data, rb_str_new2("flags2"));
 
   strcpy(dpdata->Blob, rb_string_value_cstr(&blob));
-  strncpy(dpdata->Serial, rb_string_value_cstr(&serial), sizeof(dpdata->Serial)); 
+  strncpy(dpdata->Serial, rb_string_value_cstr(&serial), sizeof(dpdata->Serial));
   strncpy(dpdata->AppName, rb_string_value_cstr(&app_name), sizeof(dpdata->AppName));
   dpdata->DPFlags[0] = rb_fix2int(flag1);
   dpdata->DPFlags[1] = rb_fix2int(flag2);
@@ -52,20 +51,20 @@ static void digipass_to_rbhash(TDigipassBlob* dpdata, VALUE hash) {
 
 
 /*
- * generate a password 
+ * generate a password
  * this will not work with all the dpx files available, it must be prepared for it
  */
 static VALUE vacman_generate_password(VALUE module, VALUE data ) {
   int result;
   TDigipassBlob dpdata;
-  
-  rbhash_to_digipass(data, &dpdata);  
+
+  rbhash_to_digipass(data, &dpdata);
 
   char buffer[256];
   memset(buffer, 0, sizeof(buffer));
   result = AAL2GenPassword(&dpdata, &KernelParms, buffer, NULL);
   digipass_to_rbhash(&dpdata, data);
-    
+
   if (result != 0) {
     raise_error("AAL2GenPassword", result);
     return Qnil;
@@ -76,18 +75,18 @@ static VALUE vacman_generate_password(VALUE module, VALUE data ) {
 
 
 /*
- * verify password 
+ * verify password
  * this is the main usecase, check the use input for authentication
  */
 static VALUE vacman_verify_password(VALUE module, VALUE data, VALUE password ) {
   int result;
   TDigipassBlob dpdata;
-  
-  rbhash_to_digipass(data, &dpdata);  
+
+  rbhash_to_digipass(data, &dpdata);
 
   char buffer[256];
   result = AAL2VerifyPassword(&dpdata, &KernelParms, rb_string_value_cstr(&password), 0);
-  
+
   digipass_to_rbhash(&dpdata, data);
 
   if (result == 0)
@@ -107,42 +106,42 @@ static VALUE vacman_import(VALUE module, VALUE filename, VALUE key) {
   aat_ascii appl_names[13*8];
   aat_int16 token_count;
 
-  aat_int32 result = AAL2DPXInit(&dpx_handle, rb_string_value_cstr(&filename), rb_string_value_cstr(&key), 
-                                 &appl_count, appl_names, &token_count);
+  aat_int32 result = AAL2DPXInit(&dpx_handle, rb_string_value_cstr(&filename), rb_string_value_cstr(&key),
+      &appl_count, appl_names, &token_count);
 
   if (result != 0) {
-  	raise_error("AAL2DPXInit", result);
+    raise_error("AAL2DPXInit", result);
     return Qnil;
   }
-    
+
   aat_ascii sw_out_serial_No[22+1];
   aat_ascii sw_out_type[5+1];
   aat_ascii sw_out_authmode[2+1];
   TDigipassBlob dpdata;
 
-	VALUE list = rb_ary_new();  
+  VALUE list = rb_ary_new();
 
   while (1) {
-	  result = AAL2DPXGetToken(&dpx_handle,
-	            &KernelParms,
-	            appl_names,
-	            sw_out_serial_No,
-	            sw_out_type,
-	            sw_out_authmode,
-	            &dpdata);
+    result = AAL2DPXGetToken(&dpx_handle,
+        &KernelParms,
+        appl_names,
+        sw_out_serial_No,
+        sw_out_type,
+        sw_out_authmode,
+        &dpdata);
 
 
-	  if (result < 0) {
-	  	raise_error("AAL2DPXGetToken", result);
-	    return Qnil;
-	  }
-		if (result == 107) break;
+    if (result < 0) {
+      raise_error("AAL2DPXGetToken", result);
+      return Qnil;
+    }
+    if (result == 107) break;
 
-	  VALUE hash = rb_hash_new();
-	  
+    VALUE hash = rb_hash_new();
+
     digipass_to_rbhash(&dpdata, hash);
-   
-	  rb_ary_push(list, hash);  	
+
+    rb_ary_push(list, hash);
   }
 
   AAL2DPXClose(&dpx_handle);
