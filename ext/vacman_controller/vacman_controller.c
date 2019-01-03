@@ -63,12 +63,12 @@ static VALUE vacman_generate_password(VALUE module, VALUE data ) {
 
   char buffer[256];
   memset(buffer, 0, sizeof(buffer));
-  result = AAL2GenPassword(&dpdata, &KernelParms, buffer, 0);
+  result = AAL2GenPassword(&dpdata, &KernelParms, buffer, NULL);
   digipass_to_rbhash(&dpdata, data);
     
   if (result != 0) {
     raise_error("AAL2GenPassword", result);
-    return;
+    return Qnil;
   }
 
   return rb_str_new2(buffer);
@@ -108,11 +108,11 @@ static VALUE vacman_import(VALUE module, VALUE filename, VALUE key) {
   aat_int16 token_count;
 
   aat_int32 result = AAL2DPXInit(&dpx_handle, rb_string_value_cstr(&filename), rb_string_value_cstr(&key), 
-                                 &appl_count, &appl_names, &token_count);
+                                 &appl_count, appl_names, &token_count);
 
   if (result != 0) {
   	raise_error("AAL2DPXInit", result);
-    return;
+    return Qnil;
   }
     
   aat_ascii sw_out_serial_No[22+1];
@@ -134,7 +134,7 @@ static VALUE vacman_import(VALUE module, VALUE filename, VALUE key) {
 
 	  if (result < 0) {
 	  	raise_error("AAL2DPXGetToken", result);
-	    return;
+	    return Qnil;
 	  }
 		if (result == 107) break;
 
@@ -154,22 +154,25 @@ static VALUE vacman_import(VALUE module, VALUE filename, VALUE key) {
 /*
  * set kernel parameters
  */
-static void vacman_set_kernal_param(VALUE module, VALUE paramname, VALUE rbval) {
+static VALUE vacman_set_kernel_param(VALUE module, VALUE paramname, VALUE rbval) {
   char* name = rb_string_value_cstr(&paramname);
   int val = rb_fix2int(rbval);
-  if (strcmp(name, "itimewindow") == 0)
-    return KernelParms.ITimeWindow = val;
-  else {
+
+  if (strcmp(name, "itimewindow") == 0) {
+    KernelParms.ITimeWindow = val;
+    return rbval;
+
+  } else {
     char buffer[256];
-    sprintf(buffer, "invalid kernal param %s", name);
-    rb_raise(e_vacmanerror, buffer);
-    return;
+    sprintf(buffer, "invalid kernel param %s", name);
+    rb_raise(e_vacmanerror, "%s", buffer);
+    return Qnil;
   }
 }
 
 
 /*
- * init the kernal parameters, this is all static up to now, we can later
+ * init the kernel parameters, this is all static up to now, we can later
  * expose this via ruby methods if neccessary
  */
 void init_kernel_params() {
@@ -204,5 +207,5 @@ void Init_vacman_controller(void) {
   rb_define_singleton_method(vacman_module, "import", vacman_import, 2);
   rb_define_singleton_method(vacman_module, "generate_password", vacman_generate_password, 1);
   rb_define_singleton_method(vacman_module, "verify_password", vacman_verify_password, 2);
-  rb_define_singleton_method(vacman_module, "set_kernal_param", vacman_set_kernal_param, 2);
+  rb_define_singleton_method(vacman_module, "set_kernel_param", vacman_set_kernel_param, 2);
 }
