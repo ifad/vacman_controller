@@ -12,7 +12,7 @@ TKernelParms   KernelParms;													// Kernel Params
 void raise_error(char* method, int error_code) {
 	char buffer[256];
 	AAL2GetErrorMsg (error_code, buffer);
-  rb_raise(e_vacmanerror, buffer);
+  rb_raise(e_vacmanerror, "%s: %s", method, buffer);
 }
 
 
