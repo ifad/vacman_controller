@@ -73,6 +73,54 @@ module VacmanController
   end
 
 
+  # Get a token single property
+  #
+  # == Parameters:
+  # hash::
+  #   the hash for a specific token (you get these in import)
+  # property::
+  #   the property names
+  #
+  # possible names:
+  #
+  #   token_model
+  #   use_count
+  #   last_time_used
+  #   last_time_shift
+  #   time_based_algo
+  #   event_based_algo
+  #   pin_supported
+  #   unlock_supported
+  #   pin_change_enabled
+  #   pin_length
+  #   pin_minimum_length
+  #   pin_enabled
+  #   pin_change_forced
+  #   virtual_token_type
+  #   virtual_token_grace_period
+  #   virtual_token_remain_use
+  #   last_response_type
+  #   error_count
+  #   event_value
+  #   last_event_value
+  #   sync_windows
+  #   primary_token_enabled
+  #   virtual_token_supported
+  #   virtual_token_enabled
+  #   code_word
+  #   auth_mode
+  #   ocra_suite
+  #   derivation_supported
+  #   max_dtf_number
+  #   response_length
+  #   response_format
+  #   response_checksum
+  #   time_step
+  #   use_3des
+  #
+  def VacmanController.get_token_property(hash, property)
+    VacmanLowLevel.get_token_property(hash, property)
+  end
 
   # todo: unlock, 
   # todo: specs

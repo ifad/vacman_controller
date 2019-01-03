@@ -73,6 +73,111 @@ static VALUE vacman_generate_password(VALUE module, VALUE data ) {
   return rb_str_new2(buffer);
 }
 
+/*
+ * Get token properties
+ */
+static char *token_property_names[] = {
+  "token_model",
+  "use_count",
+  "last_time_used",
+  "last_time_shift",
+  "time_based_algo",
+  "event_based_algo",
+  "pin_supported",
+  "unlock_supported",
+  "pin_change_enabled",
+  "pin_length",
+  "pin_minimum_length",
+  "pin_enabled",
+  "pin_change_forced",
+  "virtual_token_type",
+  "virtual_token_grace_period",
+  "virtual_token_remain_use",
+  "last_response_type",
+  "error_count",
+  "event_value",
+  "last_event_value",
+  "sync_windows",
+  "primary_token_enabled",
+  "virtual_token_supported",
+  "virtual_token_enabled",
+  "code_word",
+  "auth_mode",
+  "ocra_suite",
+  "derivation_supported",
+  "max_dtf_number",
+  "response_length",
+  "response_format",
+  "response_checksum",
+  "time_step",
+  "use_3des",
+};
+
+static long token_property_ids[] = {
+  TOKEN_MODEL,
+  USE_COUNT,
+  LAST_TIME_USED,
+  LAST_TIME_SHIFT,
+  TIME_BASED_ALGO,
+  EVENT_BASED_ALGO,
+  PIN_SUPPORTED,
+  UNLOCK_SUPPORTED,
+  PIN_CH_ON,
+  PIN_LEN,
+  PIN_MIN_LEN,
+  PIN_ENABLED,
+  PIN_CH_FORCED,
+  VIRTUAL_TOKEN_TYPE,
+  VIRTUAL_TOKEN_GRACE_PERIOD,
+  VIRTUAL_TOKEN_REMAIN_USE,
+  LAST_RESPONSE_TYPE,
+  ERROR_COUNT,
+  EVENT_VALUE,
+  LAST_EVENT_VALUE,
+  SYNC_WINDOWS,
+  PRIMARY_TOKEN_ENABLED,
+  VIRTUAL_TOKEN_SUPPORTED,
+  VIRTUAL_TOKEN_ENABLED,
+  CODE_WORD,
+  AUTH_MODE,
+  OCRA_SUITE,
+  DERIVATION_SUPPORTED,
+  MAX_DTF_NUMBER,
+  RESPONSE_LEN,
+  RESPONSE_FORMAT,
+  RESPONSE_CHK,
+  TIME_STEP,
+  TRIPLE_DES_USED,
+};
+static size_t properties_count = sizeof(token_property_names)/sizeof(char*);
+
+static long vacman_get_property_id(char *property_name) {
+  for (int i = 0; i < properties_count; i++) {
+    if (strcmp(property_name, token_property_names[i]) == 0) {
+      return token_property_ids[i];
+    }
+  }
+
+  rb_raise(e_vacmanerror, "Invalid property name `%s'", property_name);
+  return 0;
+}
+
+static VALUE vacman_get_token_property(VALUE module, VALUE token, VALUE property) {
+  TDigipassBlob dpdata;
+  rbhash_to_digipass(token, &dpdata);
+
+  char buffer[64];
+  long property_id = vacman_get_property_id(StringValueCStr(property));
+  aat_int32 result = AAL2GetTokenProperty(&dpdata, &KernelParms, property_id, buffer);
+
+  if (result == 0) {
+    return rb_str_new2(buffer);
+  } else {
+    raise_error("AAL2GetTokenProperty", result);
+    return Qnil;
+  }
+}
+
 
 /*
  * verify password
@@ -207,4 +312,5 @@ void Init_vacman_controller(void) {
   rb_define_singleton_method(vacman_module, "generate_password", vacman_generate_password, 1);
   rb_define_singleton_method(vacman_module, "verify_password", vacman_verify_password, 2);
   rb_define_singleton_method(vacman_module, "set_kernel_param", vacman_set_kernel_param, 2);
+  rb_define_singleton_method(vacman_module, "get_token_property", vacman_get_token_property, 2);
 }
