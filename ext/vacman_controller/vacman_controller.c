@@ -1,6 +1,6 @@
 #include <ruby.h>
-#include "aal2sdk.h"
 #include <string.h>
+#include <aal2sdk.h>
 
 
 static VALUE e_vacmanerror;													// our ruby exception type

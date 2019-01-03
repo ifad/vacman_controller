@@ -1,6 +1,10 @@
 require 'mkmf'
 
-if find_library('aal2sdk-3.11.2', 'AAL2DPXInit', '/opt/vasco/VACMAN_Controller-3.11.2/lib')
+VACMAN_CONTROLLER = ENV['VACMAN_PATH'] || '/opt/vasco/VACMAN_Controller-3.15.1'
+
+append_cflags "-I#{VACMAN_CONTROLLER}/include"
+
+if find_library('aal2sdk', 'AAL2DPXInit', "#{VACMAN_CONTROLLER}/lib")
   create_makefile('vacman_controller/vacman_controller')
  else
   puts "No libaal2sdk found"
