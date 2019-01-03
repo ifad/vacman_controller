@@ -1,0 +1,5 @@
+mkmf.log
+Makefile
+*.so
+*.o
+.rake*
