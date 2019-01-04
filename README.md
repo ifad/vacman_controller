@@ -16,13 +16,9 @@ Then you can use
 
 to build and install the gem, or
 
-    ruby ext/vacman_controller/extconf.rb
+    rake compile
 
-to generate the Makefile and
-
-    make
-
-to build it in the current directory.
+to generate the Makefile and compile it.
 
 To run specs, execute
 
