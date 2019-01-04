@@ -299,44 +299,74 @@ static VALUE vacman_import(VALUE module, VALUE filename, VALUE key) {
   return list;
 }
 
+struct kernel_property {
+  char *name;
+  aat_int32 *value;
+  aat_int32 deflt;
+};
+static struct kernel_property kernel_properties[] = {
+  { "ITimeWindow",    &KernelParms.ITimeWindow,    30  },  // Identification Window size in time steps
+  { "STimeWindow",    &KernelParms.STimeWindow,    24  },  // Signature Window size in secs
+  { "DiagLevel",      &KernelParms.DiagLevel,      0   },  // Requested Diagnostic Level
+  { "GMTAdjust",      &KernelParms.GMTAdjust,      0   },  // GMT Time adjustment to perform
+  { "CheckChallenge", &KernelParms.CheckChallenge, 0   },  // Verify Challenge Corrupted (mandatory for Gordian)
+  { "IThreshold",     &KernelParms.IThreshold,     3   },  // Identification Error Threshold
+  { "SThreshold",     &KernelParms.SThreshold,     1   },  // Signature Error Threshold
+  { "ChkInactDays",   &KernelParms.ChkInactDays,   0   },  // Check Inactive Days
+  { "DeriveVector",   &KernelParms.DeriveVector,   0   },  // Vector used to make Data Encryption unique
+  { "SyncWindow",     &KernelParms.SyncWindow,     2   },  // Synchronisation Time Window (h)
+  { "OnLineSG",       &KernelParms.OnLineSG,       2   },  // On line signature
+  { "EventWindow",    &KernelParms.EventWindow,    100 },  // Event Window size in nbr of iterations
+  { "HSMSlotId",      &KernelParms.HSMSlotId,      0   },  // HSM Slot id uses to store DB and Transport Key
+};
+static int kernel_properties_count = sizeof(kernel_properties)/sizeof(struct kernel_property);
 
 /*
- * set kernel parameters
+ * Set kernel parameter
  */
 static VALUE vacman_set_kernel_param(VALUE module, VALUE paramname, VALUE rbval) {
-  char* name = rb_string_value_cstr(&paramname);
-  int val = rb_fix2int(rbval);
+  char *name = StringValueCStr(paramname);
+  int value  = rb_fix2int(rbval);
 
-  if (strcmp(name, "itimewindow") == 0) {
-    KernelParms.ITimeWindow = val;
-    return rbval;
-  } else {
-    rb_raise(e_vacmanerror, "Invalid kernel param %s", name);
-    return Qnil;
+  for (int i = 0; i < kernel_properties_count; i++) {
+    if (strcmp(name, kernel_properties[i].name) == 0) {
+      *kernel_properties[i].value = value;
+      return Qtrue;
+    }
   }
+
+  rb_raise(e_vacmanerror, "Invalid kernel param %s", name);
+  return Qnil;
 }
 
 
 /*
- * init the kernel parameters, this is all static up to now, we can later
- * expose this via ruby methods if neccessary
+ * Get kernel parameter
  */
-void init_kernel_params() {
+static VALUE vacman_get_kernel_param(VALUE module, VALUE paramname) {
+  char *name = StringValueCStr(paramname);
+
+  for (int i = 0; i < kernel_properties_count; i++) {
+    if (strcmp(name, kernel_properties[i].name) == 0) {
+      return LONG2FIX(*kernel_properties[i].value);
+    }
+  }
+
+  rb_raise(e_vacmanerror, "Invalid kernel param %s", name);
+  return Qnil;
+}
+
+/*
+ * Init the kernel parameters, with their defaults
+ */
+static void init_kernel_params() {
   memset(&KernelParms, 0, sizeof(TKernelParms));
-  KernelParms.ParmCount     = 19;     /* Number of valid parameters in this list */
-  KernelParms.ITimeWindow   = 30;     /* Identification Window size in time steps*/
-  KernelParms.STimeWindow   = 24;     /* Signature Window size in secs */
-  KernelParms.DiagLevel     = 0;      /* Requested Diagnostic Level */
-  KernelParms.GMTAdjust     = 0;      /* GMT Time adjustment to perform */
-  KernelParms.CheckChallenge= 0;      /* Verify Challenge Corrupted (mandatory for Gordian) */
-  KernelParms.IThreshold    = 3;      /* Identification Error Threshold */
-  KernelParms.SThreshold    = 1;      /* Signature Error Threshold */
-  KernelParms.ChkInactDays  = 0;      /* Check Inactive Days */
-  KernelParms.DeriveVector  = 0;      /* Vector used to make Data Encryption unique     */
-  KernelParms.SyncWindow    = 2;      /* Synchronisation Time Window (h)            */
-  KernelParms.OnLineSG      = 1;      /* On line  Signature                 */
-  KernelParms.EventWindow   = 100;    /* Event Window size in nbr of iterations       */
-  KernelParms.HSMSlotId     = 0;      /* HSM Slot id uses to store DB and Transport Key   */
+
+  KernelParms.ParmCount = 19; /* Number of valid parameters in this list */
+
+  for (int i = 0; i < kernel_properties_count; i++) {
+    *kernel_properties[i].value = kernel_properties[i].deflt;
+  }
 }
 
 
@@ -344,17 +374,21 @@ void init_kernel_params() {
  * rubys entry point to load the extension
  */
 void Init_vacman_controller(void) {
-  /* assume we haven't yet defined Hola */
   VALUE vacman_module = rb_define_module("VacmanLowLevel");
 
   e_vacmanerror = rb_define_class("VacmanError", rb_eStandardError);
   init_kernel_params();
 
-  rb_define_singleton_method(vacman_module, "version", vacman_library_version, 0);
-  rb_define_singleton_method(vacman_module, "import", vacman_import, 2);
-  rb_define_singleton_method(vacman_module, "generate_password", vacman_generate_password, 1);
-  rb_define_singleton_method(vacman_module, "verify_password", vacman_verify_password, 2);
-  rb_define_singleton_method(vacman_module, "set_kernel_param", vacman_set_kernel_param, 2);
+  rb_define_singleton_method(vacman_module, "version",            vacman_library_version, 0);
+
+  rb_define_singleton_method(vacman_module, "import",             vacman_import, 2);
+
+  rb_define_singleton_method(vacman_module, "generate_password",  vacman_generate_password, 1);
+  rb_define_singleton_method(vacman_module, "verify_password",    vacman_verify_password, 2);
+
+  rb_define_singleton_method(vacman_module, "get_kernel_param",   vacman_get_kernel_param, 1);
+  rb_define_singleton_method(vacman_module, "set_kernel_param",   vacman_set_kernel_param, 2);
+
   rb_define_singleton_method(vacman_module, "get_token_property", vacman_get_token_property, 2);
   rb_define_singleton_method(vacman_module, "set_token_property", vacman_set_token_property, 3);
 }
