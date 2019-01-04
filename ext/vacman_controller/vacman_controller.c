@@ -8,10 +8,10 @@ TKernelParms KernelParms;    // Kernel Params
 /*
  * raise an error and tell wich method failed with wich error code
  */
-void raise_error(char* method, int error_code) {
+static void vacman_raise_error(char* method, int error_code) {
   aat_ascii error_message[100];
   AAL2GetErrorMsg (error_code, error_message);
-  rb_raise(e_vacmanerror, "%s: %s", method, error_message);
+  rb_raise(e_vacmanerror, "%s error %d: %s", method, error_code, error_message);
 }
 
 
@@ -70,7 +70,7 @@ static VALUE vacman_library_version(VALUE module) {
       &bitness_len, type, &type_len);
 
   if (result != 0) {
-    raise_error("AAL2GetLibraryVersion", result);
+    vacman_raise_error("AAL2GetLibraryVersion", result);
     return Qnil;
   }
 
@@ -99,7 +99,7 @@ static VALUE vacman_generate_password(VALUE module, VALUE token) {
   digipass_to_rbhash(&dpdata, token);
 
   if (result != 0) {
-    raise_error("AAL2GenPassword", result);
+    vacman_raise_error("AAL2GenPassword", result);
     return Qnil;
   }
 
@@ -257,7 +257,7 @@ static VALUE vacman_get_token_property(VALUE module, VALUE token, VALUE property
   if (result == 0) {
     return rb_str_new2(value);
   } else {
-    raise_error("AAL2GetTokenProperty", result);
+    vacman_raise_error("AAL2GetTokenProperty", result);
     return Qnil;
   }
 }
@@ -281,7 +281,7 @@ static VALUE vacman_set_token_property(VALUE module, VALUE token, VALUE property
   if (result == 0) {
     return Qtrue;
   } else {
-    raise_error("AAL2SetTokenProperty", result);
+    vacman_raise_error("AAL2SetTokenProperty", result);
     return Qnil;
   }
 }
@@ -303,7 +303,7 @@ static VALUE vacman_verify_password(VALUE module, VALUE token, VALUE password ) 
   if (result == 0)
     return Qtrue;
   else {
-    raise_error("AAL2VerifyPassword", result);
+    vacman_raise_error("AAL2VerifyPassword", result);
     return Qnil;
   }
 }
@@ -327,7 +327,7 @@ static VALUE vacman_import(VALUE module, VALUE filename, VALUE key) {
       &appl_count, appl_names, &token_count);
 
   if (result != 0) {
-    raise_error("AAL2DPXInit", result);
+    vacman_raise_error("AAL2DPXInit", result);
     return Qnil;
   }
 
@@ -349,7 +349,7 @@ static VALUE vacman_import(VALUE module, VALUE filename, VALUE key) {
 
 
     if (result < 0) {
-      raise_error("AAL2DPXGetToken", result);
+      vacman_raise_error("AAL2DPXGetToken", result);
       return Qnil;
     }
     if (result == 107) break;
