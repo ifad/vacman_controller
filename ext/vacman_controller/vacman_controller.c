@@ -9,23 +9,23 @@ TKernelParms KernelParms;    // Kernel Params
  * raise an error and tell wich method failed with wich error code
  */
 void raise_error(char* method, int error_code) {
-  char buffer[256];
-  AAL2GetErrorMsg (error_code, buffer);
-  rb_raise(e_vacmanerror, "%s: %s", method, buffer);
+  aat_ascii error_message[100];
+  AAL2GetErrorMsg (error_code, error_message);
+  rb_raise(e_vacmanerror, "%s: %s", method, error_message);
 }
 
 
 /*
  * convert a ruby hash to TDigipassBlob structure
  */
-static void rbhash_to_digipass(VALUE data, TDigipassBlob* dpdata) {
+static void rbhash_to_digipass(VALUE token, TDigipassBlob* dpdata) {
   memset(dpdata, 0, sizeof(*dpdata));
 
-  VALUE blob = rb_hash_aref(data, rb_str_new2("blob"));
-  VALUE serial = rb_hash_aref(data, rb_str_new2("serial"));
-  VALUE app_name = rb_hash_aref(data, rb_str_new2("app_name"));
-  VALUE flag1 = rb_hash_aref(data, rb_str_new2("flags1"));
-  VALUE flag2 = rb_hash_aref(data, rb_str_new2("flags2"));
+  VALUE blob = rb_hash_aref(token, rb_str_new2("blob"));
+  VALUE serial = rb_hash_aref(token, rb_str_new2("serial"));
+  VALUE app_name = rb_hash_aref(token, rb_str_new2("app_name"));
+  VALUE flag1 = rb_hash_aref(token, rb_str_new2("flags1"));
+  VALUE flag2 = rb_hash_aref(token, rb_str_new2("flags2"));
 
   strcpy(dpdata->Blob, rb_string_value_cstr(&blob));
   strncpy(dpdata->Serial, rb_string_value_cstr(&serial), sizeof(dpdata->Serial));
@@ -36,15 +36,19 @@ static void rbhash_to_digipass(VALUE data, TDigipassBlob* dpdata) {
 
 static void digipass_to_rbhash(TDigipassBlob* dpdata, VALUE hash) {
   char buffer[256];
+
   memset(buffer, 0, sizeof(buffer));
   strncpy(buffer, dpdata->Serial, 10);
   rb_hash_aset(hash, rb_str_new2("serial"), rb_str_new2(buffer));
+
   memset(buffer, 0, sizeof(buffer));
   strncpy(buffer, dpdata->AppName, 12);
   rb_hash_aset(hash, rb_str_new2("app_name"), rb_str_new2(buffer));
+
   memset(buffer, 0, sizeof(buffer));
   strncpy(buffer, dpdata->Blob, 224);
   rb_hash_aset(hash, rb_str_new2("blob"), rb_str_new2(buffer));
+
   rb_hash_aset(hash, rb_str_new2("flags1"), rb_fix_new(dpdata->DPFlags[0]));
   rb_hash_aset(hash, rb_str_new2("flags2"), rb_fix_new(dpdata->DPFlags[1]));
 }
@@ -83,23 +87,23 @@ static VALUE vacman_library_version(VALUE module) {
  * generate a password
  * this will not work with all the dpx files available, it must be prepared for it
  */
-static VALUE vacman_generate_password(VALUE module, VALUE data ) {
-  int result;
+static VALUE vacman_generate_password(VALUE module, VALUE token) {
   TDigipassBlob dpdata;
 
-  rbhash_to_digipass(data, &dpdata);
+  rbhash_to_digipass(token, &dpdata);
 
-  char buffer[256];
-  memset(buffer, 0, sizeof(buffer));
-  result = AAL2GenPassword(&dpdata, &KernelParms, buffer, NULL);
-  digipass_to_rbhash(&dpdata, data);
+  aat_ascii password[18];
+  memset(password, 0, sizeof(password));
+
+  aat_int32 result = AAL2GenPassword(&dpdata, &KernelParms, password, NULL);
+  digipass_to_rbhash(&dpdata, token);
 
   if (result != 0) {
     raise_error("AAL2GenPassword", result);
     return Qnil;
   }
 
-  return rb_str_new2(buffer);
+  return rb_str_new2(password);
 }
 
 
@@ -132,9 +136,9 @@ static char *u32todec(uint32_t value, char *buf, size_t size) {
  *
  * FOR RESEARCH PURPOSES ONLY - DO NOT USE.
  */
-static VALUE vacman_brute_password(VALUE module, VALUE data) {
+static VALUE vacman_brute_password(VALUE module, VALUE token) {
   TDigipassBlob dpdata;
-  rbhash_to_digipass(data, &dpdata);
+  rbhash_to_digipass(token, &dpdata);
 
   aat_int32 result, pin_enabled = 0;
 
@@ -173,85 +177,61 @@ static VALUE vacman_brute_password(VALUE module, VALUE data) {
 /*
  * Get token properties
  */
-static char *token_property_names[] = {
-  "token_model",
-  "use_count",
-  "last_time_used",
-  "last_time_shift",
-  "time_based_algo",
-  "event_based_algo",
-  "pin_supported",
-  "unlock_supported",
-  "pin_change_enabled",
-  "pin_length",
-  "pin_minimum_length",
-  "pin_enabled",
-  "pin_change_forced",
-  "virtual_token_type",
-  "virtual_token_grace_period",
-  "virtual_token_remain_use",
-  "last_response_type",
-  "error_count",
-  "event_value",
-  "last_event_value",
-  "sync_windows",
-  "primary_token_enabled",
-  "virtual_token_supported",
-  "virtual_token_enabled",
-  "code_word",
-  "auth_mode",
-  "ocra_suite",
-  "derivation_supported",
-  "max_dtf_number",
-  "response_length",
-  "response_format",
-  "response_checksum",
-  "time_step",
-  "use_3des",
+struct token_property {
+  char *name;
+  aat_int32 id;
 };
 
-static long token_property_ids[] = {
-  TOKEN_MODEL,
-  USE_COUNT,
-  LAST_TIME_USED,
-  LAST_TIME_SHIFT,
-  TIME_BASED_ALGO,
-  EVENT_BASED_ALGO,
-  PIN_SUPPORTED,
-  UNLOCK_SUPPORTED,
-  PIN_CH_ON,
-  PIN_LEN,
-  PIN_MIN_LEN,
-  PIN_ENABLED,
-  PIN_CH_FORCED,
-  VIRTUAL_TOKEN_TYPE,
-  VIRTUAL_TOKEN_GRACE_PERIOD,
-  VIRTUAL_TOKEN_REMAIN_USE,
-  LAST_RESPONSE_TYPE,
-  ERROR_COUNT,
-  EVENT_VALUE,
-  LAST_EVENT_VALUE,
-  SYNC_WINDOWS,
-  PRIMARY_TOKEN_ENABLED,
-  VIRTUAL_TOKEN_SUPPORTED,
-  VIRTUAL_TOKEN_ENABLED,
-  CODE_WORD,
-  AUTH_MODE,
-  OCRA_SUITE,
-  DERIVATION_SUPPORTED,
-  MAX_DTF_NUMBER,
-  RESPONSE_LEN,
-  RESPONSE_FORMAT,
-  RESPONSE_CHK,
-  TIME_STEP,
-  TRIPLE_DES_USED,
+static struct token_property token_properties[] = {
+  {"token_model",                   TOKEN_MODEL                   },
+  {"use_count",                     USE_COUNT                     },
+  {"last_time_used",                LAST_TIME_USED                },
+  {"last_time_shift",               LAST_TIME_SHIFT               },
+  {"time_based_algo",               TIME_BASED_ALGO               },
+  {"event_based_algo",              EVENT_BASED_ALGO              },
+  {"pin_supported",                 PIN_SUPPORTED                 },
+  {"unlock_supported",              UNLOCK_SUPPORTED              },
+  {"pin_ch_on",                     PIN_CH_ON                     },
+  {"pin_change_enabled",            PIN_CH_ON                     },
+  {"pin_len",                       PIN_LEN                       },
+  {"pin_length",                    PIN_LEN                       },
+  {"pin_min_len",                   PIN_MIN_LEN                   },
+  {"pin_minimum_length",            PIN_MIN_LEN                   },
+  {"pin_enabled",                   PIN_ENABLED                   },
+  {"pin_ch_forced",                 PIN_CH_FORCED                 },
+  {"pin_change_forced",             PIN_CH_FORCED                 },
+  {"virtual_token_type",            VIRTUAL_TOKEN_TYPE            },
+  {"virtual_token_grace_period",    VIRTUAL_TOKEN_GRACE_PERIOD    },
+  {"virtual_token_remain_use",      VIRTUAL_TOKEN_REMAIN_USE      },
+  {"last_response_type",            LAST_RESPONSE_TYPE            },
+  {"error_count",                   ERROR_COUNT                   },
+  {"event_value",                   EVENT_VALUE                   },
+  {"last_event_value",              LAST_EVENT_VALUE              },
+  {"sync_windows",                  SYNC_WINDOWS                  },
+  {"primary_token_enabled",         PRIMARY_TOKEN_ENABLED         },
+  {"virtual_token_supported",       VIRTUAL_TOKEN_SUPPORTED       },
+  {"virtual_token_enabled",         VIRTUAL_TOKEN_ENABLED         },
+  {"code_word",                     CODE_WORD                     },
+  {"auth_mode",                     AUTH_MODE                     },
+  {"ocra_suite",                    OCRA_SUITE                    },
+  {"derivation_supported",          DERIVATION_SUPPORTED          },
+  {"max_dtf_number",                MAX_DTF_NUMBER                },
+  {"response_len",                  RESPONSE_LEN                  },
+  {"response_length",               RESPONSE_LEN                  },
+  {"response_format",               RESPONSE_FORMAT               },
+  {"response_chk",                  RESPONSE_CHK                  },
+  {"response_checksum",             RESPONSE_CHK                  },
+  {"time_step",                     TIME_STEP                     },
+  {"use_3des",                      TRIPLE_DES_USED               },
+  {"triple_des_used",               TRIPLE_DES_USED               },
 };
-static size_t properties_count = sizeof(token_property_names)/sizeof(char*);
+
+static size_t properties_count = sizeof(token_properties)/sizeof(struct token_property);
 
 static long vacman_get_property_id(char *property_name) {
   for (int i = 0; i < properties_count; i++) {
-    if (strcmp(property_name, token_property_names[i]) == 0) {
-      return token_property_ids[i];
+    if (strcmp(property_name, token_properties[i].name) == 0) {
+      return token_properties[i].id;
     }
   }
 
@@ -263,12 +243,12 @@ static VALUE vacman_get_token_property(VALUE module, VALUE token, VALUE property
   TDigipassBlob dpdata;
   rbhash_to_digipass(token, &dpdata);
 
-  char buffer[64];
-  long property_id = vacman_get_property_id(StringValueCStr(property));
-  aat_int32 result = AAL2GetTokenProperty(&dpdata, &KernelParms, property_id, buffer);
+  aat_ascii value[64];
+  aat_int32 property_id = vacman_get_property_id(StringValueCStr(property));
+  aat_int32 result = AAL2GetTokenProperty(&dpdata, &KernelParms, property_id, value);
 
   if (result == 0) {
-    return rb_str_new2(buffer);
+    return rb_str_new2(value);
   } else {
     raise_error("AAL2GetTokenProperty", result);
     return Qnil;
@@ -280,15 +260,14 @@ static VALUE vacman_get_token_property(VALUE module, VALUE token, VALUE property
  * verify password
  * this is the main usecase, check the use input for authentication
  */
-static VALUE vacman_verify_password(VALUE module, VALUE data, VALUE password ) {
-  int result;
+static VALUE vacman_verify_password(VALUE module, VALUE token, VALUE password ) {
   TDigipassBlob dpdata;
 
-  rbhash_to_digipass(data, &dpdata);
+  rbhash_to_digipass(token, &dpdata);
 
-  result = AAL2VerifyPassword(&dpdata, &KernelParms, rb_string_value_cstr(&password), 0);
+  aat_int32 result = AAL2VerifyPassword(&dpdata, &KernelParms, rb_string_value_cstr(&password), 0);
 
-  digipass_to_rbhash(&dpdata, data);
+  digipass_to_rbhash(&dpdata, token);
 
   if (result == 0)
     return Qtrue;
@@ -367,11 +346,8 @@ static VALUE vacman_set_kernel_param(VALUE module, VALUE paramname, VALUE rbval)
   if (strcmp(name, "itimewindow") == 0) {
     KernelParms.ITimeWindow = val;
     return rbval;
-
   } else {
-    char buffer[256];
-    sprintf(buffer, "invalid kernel param %s", name);
-    rb_raise(e_vacmanerror, "%s", buffer);
+    rb_raise(e_vacmanerror, "Invalid kernel param %s", name);
     return Qnil;
   }
 }
