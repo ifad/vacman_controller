@@ -49,6 +49,35 @@ static void digipass_to_rbhash(TDigipassBlob* dpdata, VALUE hash) {
   rb_hash_aset(hash, rb_str_new2("flags2"), rb_fix_new(dpdata->DPFlags[1]));
 }
 
+/*
+ * Get library version and return it as an hash
+ */
+static VALUE vacman_library_version(VALUE module) {
+  aat_ascii version[16];
+  aat_int32 version_len = sizeof(version);
+
+  aat_ascii bitness[4];
+  aat_int32 bitness_len = sizeof(bitness);
+
+  aat_ascii type[8];
+  aat_int32 type_len = sizeof(type);
+
+  aat_int32 result = AAL2GetLibraryVersion(version, &version_len, bitness,
+      &bitness_len, type, &type_len);
+
+  if (result != 0) {
+    raise_error("AAL2GetLibraryVersion", result);
+    return Qnil;
+  }
+
+  VALUE hash = rb_hash_new();
+  rb_hash_aset(hash, rb_str_new2("version"), rb_str_new2(version));
+  rb_hash_aset(hash, rb_str_new2("bitness"), rb_str_new2(bitness));
+  rb_hash_aset(hash, rb_str_new2("type"),    rb_str_new2(type));
+
+  return hash;
+}
+
 
 /*
  * generate a password
@@ -308,6 +337,7 @@ void Init_vacman_controller(void) {
   e_vacmanerror = rb_define_class("VacmanError", rb_eStandardError);
   init_kernel_params();
 
+  rb_define_singleton_method(vacman_module, "version", vacman_library_version, 0);
   rb_define_singleton_method(vacman_module, "import", vacman_import, 2);
   rb_define_singleton_method(vacman_module, "generate_password", vacman_generate_password, 1);
   rb_define_singleton_method(vacman_module, "verify_password", vacman_verify_password, 2);
