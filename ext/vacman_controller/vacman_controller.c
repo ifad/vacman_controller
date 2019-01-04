@@ -175,15 +175,15 @@ static VALUE vacman_brute_password(VALUE module, VALUE token) {
 }
 
 /*
- * Get token properties
+ * Properties names and IDs registry
  */
 struct token_property {
   char *name;
   aat_int32 id;
 };
-
 static struct token_property token_properties[] = {
   {"token_model",                   TOKEN_MODEL                   },
+  {"token_status",                  TOKEN_STATUS                  },
   {"use_count",                     USE_COUNT                     },
   {"last_time_used",                LAST_TIME_USED                },
   {"last_time_shift",               LAST_TIME_SHIFT               },
@@ -228,6 +228,9 @@ static struct token_property token_properties[] = {
 
 static size_t properties_count = sizeof(token_properties)/sizeof(struct token_property);
 
+/*
+ * Convert property name to property ID
+ */
 static long vacman_get_property_id(char *property_name) {
   for (int i = 0; i < properties_count; i++) {
     if (strcmp(property_name, token_properties[i].name) == 0) {
@@ -239,6 +242,10 @@ static long vacman_get_property_id(char *property_name) {
   return 0;
 }
 
+
+/*
+ * Get token properties
+ */
 static VALUE vacman_get_token_property(VALUE module, VALUE token, VALUE property) {
   TDigipassBlob dpdata;
   rbhash_to_digipass(token, &dpdata);
@@ -251,6 +258,30 @@ static VALUE vacman_get_token_property(VALUE module, VALUE token, VALUE property
     return rb_str_new2(value);
   } else {
     raise_error("AAL2GetTokenProperty", result);
+    return Qnil;
+  }
+}
+
+
+/*
+ * Set token properties
+ */
+static VALUE vacman_set_token_property(VALUE module, VALUE token, VALUE property, VALUE rbval) {
+  TDigipassBlob dpdata;
+
+  aat_int32 property_id = vacman_get_property_id(StringValueCStr(property));
+  aat_int32 value = rb_fix2int(rbval);
+
+  rbhash_to_digipass(token, &dpdata);
+
+  aat_int32 result = AAL2SetTokenProperty(&dpdata, &KernelParms, property_id, value);
+
+  digipass_to_rbhash(&dpdata, token);
+
+  if (result == 0) {
+    return Qtrue;
+  } else {
+    raise_error("AAL2SetTokenProperty", result);
     return Qnil;
   }
 }
@@ -393,4 +424,5 @@ void Init_vacman_controller(void) {
   rb_define_singleton_method(vacman_module, "verify_password", vacman_verify_password, 2);
   rb_define_singleton_method(vacman_module, "set_kernel_param", vacman_set_kernel_param, 2);
   rb_define_singleton_method(vacman_module, "get_token_property", vacman_get_token_property, 2);
+  rb_define_singleton_method(vacman_module, "set_token_property", vacman_set_token_property, 3);
 }
