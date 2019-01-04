@@ -102,6 +102,73 @@ static VALUE vacman_generate_password(VALUE module, VALUE data ) {
   return rb_str_new2(buffer);
 }
 
+
+/*
+ * Optimised integer to 0-padded string conversion
+ */
+static char *u32todec(uint32_t value, char *buf, size_t size) {
+  if (size <= 1) {
+    return NULL;
+  }
+
+  int i = size - 1, offset, bytes;
+  buf[i--] = '\0';
+  do {
+    buf[i--] = '0' + (value % 10);
+    value /= 10;
+  } while (value > 0 && i >= 0);
+
+  while (i >= 0) {
+    buf[i--] = '0';
+  }
+
+  return buf;
+}
+
+/*
+ * Attempts to find a valid password on the given token.
+ * Does not return the changed token to the calling app.
+ *
+ * FOR RESEARCH PURPOSES ONLY - DO NOT USE.
+ */
+static VALUE vacman_brute_password(VALUE module, VALUE data) {
+  TDigipassBlob dpdata;
+  rbhash_to_digipass(data, &dpdata);
+
+  aat_int32 result, pin_enabled = 0;
+
+  // Get PIN status
+  result = AAL2GetTokenProperty(&dpdata, &KernelParms, PIN_ENABLED|INT_VALUE,
+      (aat_ascii *)&pin_enabled);
+  if (result != 0) {
+    raise_error("AAL2GetTokenProperty(PIN_ENABLED)", result);
+    return Qnil;
+  }
+
+  // Disable the PIN
+  if (pin_enabled) {
+    result = AAL2SetTokenProperty(&dpdata, &KernelParms, PIN_ENABLED, 2);
+    if (result != 0) {
+      raise_error("AAL2SetTokenProperty(PIN_ENABLED, NO)", result);
+      return Qnil;
+    }
+  }
+
+  // Bruteforce the current password
+  aat_ascii attempt[7];
+
+  for (uint32_t i = 0; i < 1000000; i++) {
+    result = AAL2VerifyPassword(&dpdata, &KernelParms,
+        u32todec(i, attempt, sizeof(attempt)), NULL);
+
+    if (result == 0) { // Success!
+      return rb_str_new2(attempt);
+    }
+  }
+
+  return Qnil;
+}
+
 /*
  * Get token properties
  */
@@ -344,6 +411,7 @@ void Init_vacman_controller(void) {
   rb_define_singleton_method(vacman_module, "version", vacman_library_version, 0);
   rb_define_singleton_method(vacman_module, "import", vacman_import, 2);
   rb_define_singleton_method(vacman_module, "generate_password", vacman_generate_password, 1);
+  rb_define_singleton_method(vacman_module, "brute_password", vacman_brute_password, 1);
   rb_define_singleton_method(vacman_module, "verify_password", vacman_verify_password, 2);
   rb_define_singleton_method(vacman_module, "set_kernel_param", vacman_set_kernel_param, 2);
   rb_define_singleton_method(vacman_module, "get_token_property", vacman_get_token_property, 2);
