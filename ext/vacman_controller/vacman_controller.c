@@ -3,7 +3,7 @@
 #include <aal2sdk.h>
 
 static VALUE e_vacmanerror;  // our ruby exception type
-TKernelParms   KernelParms;  // Kernel Params
+TKernelParms KernelParms;    // Kernel Params
 
 /*
  * raise an error and tell wich method failed with wich error code
@@ -232,7 +232,11 @@ static VALUE vacman_verify_password(VALUE module, VALUE data, VALUE password ) {
 
 
 /*
- * do import a dpx file containing
+ * Import a .DPX file containing token seeds and initialisation values.
+ *
+ * Pass the pre-shared key to validate it as the second argument. Or if
+ * you don't have the key, replace the DC line with one from a file you
+ * know the key. Yes.
  */
 static VALUE vacman_import(VALUE module, VALUE filename, VALUE key) {
   TDPXHandle dpx_handle;
