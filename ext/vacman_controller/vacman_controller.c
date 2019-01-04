@@ -19,7 +19,7 @@ void raise_error(char* method, int error_code) {
  * convert a ruby hash to TDigipassBlob structure
  */
 static void rbhash_to_digipass(VALUE data, TDigipassBlob* dpdata) {
-  memset(dpdata, 0, sizeof(dpdata));
+  memset(dpdata, 0, sizeof(*dpdata));
 
   VALUE blob = rb_hash_aref(data, rb_str_new2("blob"));
   VALUE serial = rb_hash_aref(data, rb_str_new2("serial"));
@@ -111,8 +111,9 @@ static char *u32todec(uint32_t value, char *buf, size_t size) {
     return NULL;
   }
 
-  int i = size - 1, offset, bytes;
+  int i = size - 1;
   buf[i--] = '\0';
+
   do {
     buf[i--] = '0' + (value % 10);
     value /= 10;
@@ -285,15 +286,16 @@ static VALUE vacman_verify_password(VALUE module, VALUE data, VALUE password ) {
 
   rbhash_to_digipass(data, &dpdata);
 
-  char buffer[256];
   result = AAL2VerifyPassword(&dpdata, &KernelParms, rb_string_value_cstr(&password), 0);
 
   digipass_to_rbhash(&dpdata, data);
 
   if (result == 0)
     return Qtrue;
-  else
+  else {
     raise_error("AAL2VerifyPassword", result);
+    return Qnil;
+  }
 }
 
 
