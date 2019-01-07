@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'vacman_controller'
-  s.version     = '0.1.0'
-  s.date        = '2019-01-04'
+  s.version     = '0.1.1'
+  s.date        = '2019-01-07'
   s.summary     = "Access to the vacman controller library"
   s.description = "Authenticate user via vacman controller"
   s.authors     = ["Marcus Lankenau", "Marcello Barnaba"]
