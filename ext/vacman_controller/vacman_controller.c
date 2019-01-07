@@ -8,7 +8,7 @@ TKernelParms KernelParms;    // Kernel Params
 /*
  * raise an error and tell wich method failed with wich error code
  */
-static void vacman_raise_error(char* method, int error_code) {
+static void vacman_raise_error(const char* method, int error_code) {
   aat_ascii error_message[100];
   AAL2GetErrorMsg (error_code, error_message);
   rb_raise(e_vacmanerror, "%s error %d: %s", method, error_code, error_message);
@@ -19,13 +19,13 @@ static void vacman_raise_error(char* method, int error_code) {
  * convert a ruby hash to TDigipassBlob structure
  */
 static void rbhash_to_digipass(VALUE token, TDigipassBlob* dpdata) {
-  memset(dpdata, 0, sizeof(*dpdata));
-
   VALUE blob = rb_hash_aref(token, rb_str_new2("blob"));
   VALUE serial = rb_hash_aref(token, rb_str_new2("serial"));
   VALUE app_name = rb_hash_aref(token, rb_str_new2("app_name"));
   VALUE flag1 = rb_hash_aref(token, rb_str_new2("flags1"));
   VALUE flag2 = rb_hash_aref(token, rb_str_new2("flags2"));
+
+  memset(dpdata, 0, sizeof(*dpdata));
 
   strcpy(dpdata->Blob, rb_string_value_cstr(&blob));
   strncpy(dpdata->Serial, rb_string_value_cstr(&serial), sizeof(dpdata->Serial));
@@ -111,7 +111,7 @@ static VALUE vacman_generate_password(VALUE module, VALUE token) {
  * Properties names and IDs registry
  */
 struct token_property {
-  char *name;
+  const char *name;
   aat_int32 id;
 };
 static struct token_property token_properties[] = {
@@ -165,7 +165,7 @@ static size_t properties_count = sizeof(token_properties)/sizeof(struct token_pr
  * Convert property name to property ID
  */
 static long vacman_get_property_id(char *property_name) {
-  for (int i = 0; i < properties_count; i++) {
+  for (size_t i = 0; i < properties_count; i++) {
     if (strcmp(property_name, token_properties[i].name) == 0) {
       return token_properties[i].id;
     }
@@ -300,7 +300,7 @@ static VALUE vacman_import(VALUE module, VALUE filename, VALUE key) {
 }
 
 struct kernel_property {
-  char *name;
+  const char *name;
   aat_int32 *value;
   aat_int32 deflt;
 };
