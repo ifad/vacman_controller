@@ -6,3 +6,4 @@ Makefile
 .bundle
 .rake*
 Gemfile.lock
+pkg
