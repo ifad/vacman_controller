@@ -64,6 +64,14 @@ module VacmanController
 
 
 
+  # Gets the available kernel property names
+  #
+  def kernel_property_names
+    @_kernel_property_names ||= VacmanLowLevel.kernel_property_names
+  end
+
+
+
   # Get a kernel parameter, wich is a basically a setting for vacman controller
   #
   # == Parameters:
@@ -90,52 +98,62 @@ module VacmanController
 
 
 
+  # Returns all configured kernel parameters
+  #
+  def get_kernel_all_parameters
+    kernel_property_names.inject({}) do |h, name|
+      h.update(name => (get_kernel_param(name) rescue "ERROR: #$!"))
+    end
+  end
+
+
+
+  # Gets the available token property names
+  #
+  def token_property_names
+    @_token_property_names ||= VacmanLowLevel.token_property_names
+  end
+
+
+
   # Get a token single property
   #
   # == Parameters:
   # hash::
   #   the hash for a specific token (you get these in import)
   # property::
-  #   the property names
-  #
-  # possible names:
-  #
-  #   token_model
-  #   use_count
-  #   last_time_used
-  #   last_time_shift
-  #   time_based_algo
-  #   event_based_algo
-  #   pin_supported
-  #   unlock_supported
-  #   pin_change_enabled
-  #   pin_length
-  #   pin_minimum_length
-  #   pin_enabled
-  #   pin_change_forced
-  #   virtual_token_type
-  #   virtual_token_grace_period
-  #   virtual_token_remain_use
-  #   last_response_type
-  #   error_count
-  #   event_value
-  #   last_event_value
-  #   sync_windows
-  #   primary_token_enabled
-  #   virtual_token_supported
-  #   virtual_token_enabled
-  #   code_word
-  #   auth_mode
-  #   ocra_suite
-  #   derivation_supported
-  #   max_dtf_number
-  #   response_length
-  #   response_format
-  #   response_checksum
-  #   time_step
-  #   use_3des
+  #   the property name. See +token_property_names+
   #
   def get_token_property(hash, property)
     VacmanLowLevel.get_token_property(hash, property)
+  end
+
+
+
+  # Set a token single property
+  #
+  # == Parameters:
+  # hash::
+  #   the hash for a specific token (you get these in import)
+  # property::
+  #   the property name. See +token_property_names+
+  # value::
+  #   the property value. Only values convertible to integer are supported.
+  #
+  # possible names:
+  #
+  #
+  def set_token_property(hash, property, value)
+    VacmanLowlevel.set_token_property(hash, property, value)
+  end
+
+
+
+  # Returns all properties configured for a token
+  #
+  def get_token_all_properties(hash)
+    token_property_names.inject({}) do |h, name|
+      h.update(name => (get_token_property(hash, name) rescue "ERROR: #$!"))
+    end
   end
 end

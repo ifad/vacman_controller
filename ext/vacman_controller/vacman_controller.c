@@ -159,13 +159,13 @@ static struct token_property token_properties[] = {
   {"triple_des_used",               TRIPLE_DES_USED               },
 };
 
-static size_t properties_count = sizeof(token_properties)/sizeof(struct token_property);
+static size_t token_properties_count = sizeof(token_properties)/sizeof(struct token_property);
 
 /*
  * Convert property name to property ID
  */
 static long vacman_get_property_id(char *property_name) {
-  for (size_t i = 0; i < properties_count; i++) {
+  for (size_t i = 0; i < token_properties_count; i++) {
     if (strcmp(property_name, token_properties[i].name) == 0) {
       return token_properties[i].id;
     }
@@ -173,6 +173,20 @@ static long vacman_get_property_id(char *property_name) {
 
   rb_raise(e_vacmanerror, "Invalid property name `%s'", property_name);
   return 0;
+}
+
+/*
+ * Get token property names
+ */
+static VALUE vacman_get_token_property_names(void) {
+  VALUE ret = rb_ary_new();
+
+  for (size_t i = 0; i < token_properties_count; i++) {
+    const char *name = token_properties[i].name;
+    rb_ary_push(ret, rb_str_new2(name));
+  }
+
+  return ret;
 }
 
 
@@ -322,6 +336,20 @@ static struct kernel_property kernel_properties[] = {
 static int kernel_properties_count = sizeof(kernel_properties)/sizeof(struct kernel_property);
 
 /*
+ * Get kernel property names
+ */
+static VALUE vacman_get_kernel_property_names(void) {
+  VALUE ret = rb_ary_new();
+
+  for (size_t i = 0; i < kernel_properties_count; i++) {
+    const char *name = kernel_properties[i].name;
+    rb_ary_push(ret, rb_str_new2(name));
+  }
+
+  return ret;
+}
+
+/*
  * Set kernel parameter
  */
 static VALUE vacman_set_kernel_param(VALUE module, VALUE paramname, VALUE rbval) {
@@ -391,4 +419,7 @@ void Init_vacman_controller(void) {
 
   rb_define_singleton_method(vacman_module, "get_token_property", vacman_get_token_property, 2);
   rb_define_singleton_method(vacman_module, "set_token_property", vacman_set_token_property, 3);
+
+  rb_define_singleton_method(vacman_module, "token_property_names", vacman_get_token_property_names, 0);
+  rb_define_singleton_method(vacman_module, "kernel_property_names", vacman_get_kernel_property_names, 0);
 }
