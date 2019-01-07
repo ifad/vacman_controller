@@ -18,12 +18,33 @@ static void vacman_raise_error(const char* method, int error_code) {
 /*
  * convert a ruby hash to TDigipassBlob structure
  */
+static VALUE rbhash_get_key(VALUE token, const char *property, int type) {
+  VALUE ret = rb_hash_aref(token, rb_str_new2(property));
+
+  if (ret == Qnil) {
+    rb_raise(e_vacmanerror, "invalid token object given: %s property is nil", property);
+    return Qnil;
+  }
+
+  if (!RB_TYPE_P(ret, type)) {
+    rb_raise(e_vacmanerror, "invalid token object given: %s property is not of the correct type", property);
+    return Qnil;
+  }
+
+  return ret;
+}
+
 static void rbhash_to_digipass(VALUE token, TDigipassBlob* dpdata) {
-  VALUE blob = rb_hash_aref(token, rb_str_new2("blob"));
-  VALUE serial = rb_hash_aref(token, rb_str_new2("serial"));
-  VALUE app_name = rb_hash_aref(token, rb_str_new2("app_name"));
-  VALUE flag1 = rb_hash_aref(token, rb_str_new2("flags1"));
-  VALUE flag2 = rb_hash_aref(token, rb_str_new2("flags2"));
+  if (!RB_TYPE_P(token, T_HASH)) {
+    rb_raise(e_vacmanerror, "invalid token object given, requires an hash");
+    return;
+  }
+
+  VALUE blob     = rbhash_get_key(token, "blob",     T_STRING);
+  VALUE serial   = rbhash_get_key(token, "serial",   T_STRING);
+  VALUE app_name = rbhash_get_key(token, "app_name", T_STRING);
+  VALUE flag1    = rbhash_get_key(token, "flags1",   T_FIXNUM);
+  VALUE flag2    = rbhash_get_key(token, "flags2",   T_FIXNUM);
 
   memset(dpdata, 0, sizeof(*dpdata));
 
