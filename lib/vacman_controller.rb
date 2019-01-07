@@ -144,7 +144,7 @@ module VacmanController
   #
   #
   def set_token_property(hash, property, value)
-    VacmanLowlevel.set_token_property(hash, property, value)
+    VacmanLowLevel.set_token_property(hash, property, value)
   end
 
 
