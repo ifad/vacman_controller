@@ -2,5 +2,7 @@ mkmf.log
 Makefile
 *.so
 *.o
+.*.sw?
+.bundle
 .rake*
 Gemfile.lock
