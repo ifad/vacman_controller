@@ -149,6 +149,23 @@ module VacmanController
 
 
 
+  # Set a token PIN
+  #
+  # == Parameters:
+  # hash::
+  #   the hash for a specific token (you get these in import)
+  # pin::
+  #   the new PIN. must be a string.
+  #
+  # possible names:
+  #
+  #
+  def set_token_pin(hash, pin)
+    VacmanLowLevel.set_token_pin(hash, pin)
+  end
+
+
+
   # Returns all properties configured for a token
   #
   def get_token_all_properties(hash)

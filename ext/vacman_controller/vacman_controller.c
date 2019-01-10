@@ -256,6 +256,33 @@ static VALUE vacman_set_token_property(VALUE module, VALUE token, VALUE property
 
 
 /*
+ * Set token static password
+ */
+static VALUE vacman_set_token_pin(VALUE module, VALUE token, VALUE pin) {
+  TDigipassBlob dpdata;
+
+  if (!RB_TYPE_P(pin, T_STRING)) {
+    rb_raise(e_vacmanerror, "invalid pin given, requires a string");
+    return Qnil;
+  }
+
+  rbhash_to_digipass(token, &dpdata);
+
+  aat_ascii *passwd = StringValueCStr(pin);
+  aat_int32 result = AAL2ChangeStaticPassword(&dpdata, &KernelParms, passwd, passwd);
+
+  digipass_to_rbhash(&dpdata, token);
+
+  if (result == 0) {
+    return Qtrue;
+  } else {
+    vacman_raise_error("AAL2ChangeStaticPassword", result);
+    return Qnil;
+  }
+}
+
+
+/*
  * verify password
  * this is the main usecase, check the use input for authentication
  */
@@ -440,6 +467,8 @@ void Init_vacman_controller(void) {
 
   rb_define_singleton_method(vacman_module, "get_token_property", vacman_get_token_property, 2);
   rb_define_singleton_method(vacman_module, "set_token_property", vacman_set_token_property, 3);
+
+  rb_define_singleton_method(vacman_module, "set_token_pin",      vacman_set_token_pin, 2);
 
   rb_define_singleton_method(vacman_module, "token_property_names", vacman_get_token_property_names, 0);
   rb_define_singleton_method(vacman_module, "kernel_property_names", vacman_get_kernel_property_names, 0);
