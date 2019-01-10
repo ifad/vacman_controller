@@ -354,7 +354,7 @@ static struct kernel_property kernel_properties[] = {
   { "EventWindow",    &KernelParms.EventWindow,    100 },  // Event Window size in nbr of iterations
   { "HSMSlotId",      &KernelParms.HSMSlotId,      0   },  // HSM Slot id uses to store DB and Transport Key
 };
-static int kernel_properties_count = sizeof(kernel_properties)/sizeof(struct kernel_property);
+static size_t kernel_properties_count = sizeof(kernel_properties)/sizeof(struct kernel_property);
 
 /*
  * Get kernel property names
@@ -377,7 +377,7 @@ static VALUE vacman_set_kernel_param(VALUE module, VALUE paramname, VALUE rbval)
   char *name = StringValueCStr(paramname);
   int value  = rb_fix2int(rbval);
 
-  for (int i = 0; i < kernel_properties_count; i++) {
+  for (size_t i = 0; i < kernel_properties_count; i++) {
     if (strcmp(name, kernel_properties[i].name) == 0) {
       *kernel_properties[i].value = value;
       return Qtrue;
@@ -395,7 +395,7 @@ static VALUE vacman_set_kernel_param(VALUE module, VALUE paramname, VALUE rbval)
 static VALUE vacman_get_kernel_param(VALUE module, VALUE paramname) {
   char *name = StringValueCStr(paramname);
 
-  for (int i = 0; i < kernel_properties_count; i++) {
+  for (size_t i = 0; i < kernel_properties_count; i++) {
     if (strcmp(name, kernel_properties[i].name) == 0) {
       return LONG2FIX(*kernel_properties[i].value);
     }
@@ -413,7 +413,7 @@ static void init_kernel_params() {
 
   KernelParms.ParmCount = 19; /* Number of valid parameters in this list */
 
-  for (int i = 0; i < kernel_properties_count; i++) {
+  for (size_t i = 0; i < kernel_properties_count; i++) {
     *kernel_properties[i].value = kernel_properties[i].deflt;
   }
 }
