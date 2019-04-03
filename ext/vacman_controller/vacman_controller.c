@@ -323,9 +323,11 @@ static VALUE vacman_verify_password(VALUE module, VALUE token, VALUE password) {
 /*
  * Import a .DPX file containing token seeds and initialisation values.
  *
- * Pass the pre-shared key to validate it as the second argument. Or if
- * you don't have the key, replace the DC line with one from a file you
- * know the key. Yes.
+ * Pass the pre-shared key to validate it as the second argument. The
+ * key is not validated by the AAL2 library, if you pass a different
+ * key than the one that was used to create the DPX, you will get back
+ * tokens that generate different OTPs.
+ *
  */
 static VALUE vacman_import(VALUE module, VALUE filename, VALUE key) {
   TDPXHandle dpx_handle;
