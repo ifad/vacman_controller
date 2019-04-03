@@ -1,12 +1,27 @@
+/*
+ * Vacman Controller wrapper
+ *
+ * This Ruby Extension wraps the VASCO Vacman Controller
+ * library and makes its API accessible to Ruby code.
+ *
+ * (C) 2013 https://github.com/mlankenau
+ * (C) 2019 m.barnaba@ifad.org
+ */
+
 #include <ruby.h>
 #include <string.h>
 #include <aal2sdk.h>
 
-static VALUE e_vacmanerror;  // our ruby exception type
-TKernelParms KernelParms;    // Kernel Params
+/* Ruby exception type, defined as VacmanError when initialising */
+static VALUE e_vacmanerror;
+
+/* The Vacman kernel parameters, set up at extension initialisation time.
+ * FIXME: make this threadsafe by removing this global variable and use
+ * an instance variable. */
+TKernelParms KernelParms;
 
 /*
- * raise an error and tell wich method failed with wich error code
+ * Raises an Vacman tellng which method failed with which error code.
  */
 static void vacman_raise_error(const char* method, int error_code) {
   aat_ascii error_message[100];
@@ -15,9 +30,6 @@ static void vacman_raise_error(const char* method, int error_code) {
 }
 
 
-/*
- * convert a ruby hash to TDigipassBlob structure
- */
 static VALUE rbhash_get_key(VALUE token, const char *property, int type) {
   VALUE ret = rb_hash_aref(token, rb_str_new2(property));
 
@@ -34,6 +46,9 @@ static VALUE rbhash_get_key(VALUE token, const char *property, int type) {
   return ret;
 }
 
+/*
+ * Convert a Ruby Hash with the required keys to a TDigipassBlob structure.
+ */
 static void rbhash_to_digipass(VALUE token, TDigipassBlob* dpdata) {
   if (!RB_TYPE_P(token, T_HASH)) {
     rb_raise(e_vacmanerror, "invalid token object given, requires an hash");
@@ -55,6 +70,9 @@ static void rbhash_to_digipass(VALUE token, TDigipassBlob* dpdata) {
   dpdata->DPFlags[1] = rb_fix2int(flag2);
 }
 
+/*
+ * Convert a TDigipassBlob structure into a Ruby Hash
+ */
 static void digipass_to_rbhash(TDigipassBlob* dpdata, VALUE hash) {
   char buffer[256];
 
@@ -75,7 +93,7 @@ static void digipass_to_rbhash(TDigipassBlob* dpdata, VALUE hash) {
 }
 
 /*
- * Get library version and return it as an hash
+ * Use AAL2GetLibraryVersion to obtain library version and return it as a Ruby Hash
  */
 static VALUE vacman_library_version(VALUE module) {
   aat_ascii version[16];
@@ -105,8 +123,7 @@ static VALUE vacman_library_version(VALUE module) {
 
 
 /*
- * generate a password
- * this will not work with all the dpx files available, it must be prepared for it
+ * Generate an OTP from the given token, if the token allows it.
  */
 static VALUE vacman_generate_password(VALUE module, VALUE token) {
   TDigipassBlob dpdata;
@@ -127,9 +144,8 @@ static VALUE vacman_generate_password(VALUE module, VALUE token) {
   return rb_str_new2(password);
 }
 
-
 /*
- * Properties names and IDs registry
+ * Vacman properties names and IDs registry
  */
 struct token_property {
   const char *name;
@@ -283,10 +299,9 @@ static VALUE vacman_set_token_pin(VALUE module, VALUE token, VALUE pin) {
 
 
 /*
- * verify password
- * this is the main usecase, check the use input for authentication
+ * Verify the given OTP against the given token.
  */
-static VALUE vacman_verify_password(VALUE module, VALUE token, VALUE password ) {
+static VALUE vacman_verify_password(VALUE module, VALUE token, VALUE password) {
   TDigipassBlob dpdata;
 
   rbhash_to_digipass(token, &dpdata);
@@ -361,6 +376,9 @@ static VALUE vacman_import(VALUE module, VALUE filename, VALUE key) {
   return list;
 }
 
+/*
+ * Vacman Controller kernel properties
+ */
 struct kernel_property {
   const char *name;
   aat_int32 *value;
@@ -433,7 +451,7 @@ static VALUE vacman_get_kernel_param(VALUE module, VALUE paramname) {
 }
 
 /*
- * Init the kernel parameters, with their defaults
+ * Initialise the kernel parameters with their defaults
  */
 static void init_kernel_params() {
   memset(&KernelParms, 0, sizeof(TKernelParms));
@@ -447,7 +465,7 @@ static void init_kernel_params() {
 
 
 /*
- * rubys entry point to load the extension
+ * Extension entry point
  */
 void Init_vacman_controller(void) {
   VALUE vacman_module = rb_define_module("VacmanLowLevel");
