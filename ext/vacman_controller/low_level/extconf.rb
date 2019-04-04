@@ -17,7 +17,7 @@ append_cflags "-I#{VACMAN_CONTROLLER}/include -Wall -std=c99 -Wno-declaration-af
 append_ldflags "-L#{VACMAN_CONTROLLER}/lib -laal2sdk -Wl,-rpath #{VACMAN_CONTROLLER}/lib"
 
 if find_library('aal2sdk', 'AAL2DPXInit', "#{VACMAN_CONTROLLER}/lib")
-  create_makefile('vacman_controller/vacman_controller')
+  create_makefile('vacman_controller/low_level')
  else
   puts "No libaal2sdk found"
   exit 1
