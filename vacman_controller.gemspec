@@ -12,4 +12,5 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'rake-compiler'
   s.add_development_dependency 'rspec'
+  s.add_development_dependency 'guard-rspec'
 end
