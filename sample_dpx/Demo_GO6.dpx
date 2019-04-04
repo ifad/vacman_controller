@@ -1,0 +1,22 @@
+ZZ ----------------<        DPGO1 Export File             >----------------------------- 
+DH FILE="GO1_10.DPX" DATE=27AUG2002 VERSION=1.5 CREATED_BY=BDEV 
+DC HSH=0EE07880 DEL=0A97BE2F9380B33E 
+DA A_HOST=APPL1 
+ZZ 
+ZZ ----------------<      Token Independent Fields        >----------------------------- 
+DF GL TKTYPE CALCULATOR 
+DF I0 A_APPLNAME A_CODEWORD A_RSPCHK A_RSPTY A_RSPLNG A_TDESFLAG 
+ZZ 
+ZZ ----------------<       Token Dependent Fields         >----------------------------- 
+DF G0 SERNUMB8 IPIN PINLNG PINCHGLNG PINFORCED PINCHGON 
+DF A0 SERNUMB8 A_IVLEFT A_IVRIGHT A_OFFSET A_DES64KEY A_TDES64KEY 
+ZZ 
+ZZ ------------------------------------------------------------------------------------- 
+GL DPGO6 Y 
+I0 "APPLI 1     " 00005200 N D 6 N 
+G0 91234582 96BC2AAE 4 4 N Y 
+A0 91234582 0CF1E7DE 7A76B04E 3B2AA0 97FE185D4658D6A3 D0A7FD20399E616F 
+ZZ ------------------------------------------------------------------------------------- 
+DE DEF_RECORDS=8 DATA_RECORDS=4 TOKENS=1 
+ZZ ------------------------------------------------------------------------------------- 
+ 

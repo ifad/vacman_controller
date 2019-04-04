@@ -111,6 +111,7 @@ module VacmanController
     #
     def enable_pin!
       properties[:pin_enabled] = 1
+      true
     end
 
 
@@ -118,6 +119,7 @@ module VacmanController
     #
     def disable_pin!
       properties[:pin_enabled] = 2
+      true
     end
 
 
@@ -125,6 +127,7 @@ module VacmanController
     #
     def force_pin_change!
       properties[:pin_change_forced] = 1
+      true
     end
 
 
@@ -132,6 +135,7 @@ module VacmanController
     #
     def reset_error_count!
       properties[:error_count] = 0
+      true
     end
 
 
@@ -139,6 +143,7 @@ module VacmanController
     #
     def disable!
       properties[:token_status] = 0
+      true
     end
 
 
@@ -146,6 +151,7 @@ module VacmanController
     #
     def enable_primary_only!
       properties[:token_status] = 1
+      true
     end
 
 
@@ -153,6 +159,7 @@ module VacmanController
     #
     def enable_backup_only!
       properties[:token_status] = 2
+      true
     end
 
 
@@ -160,6 +167,7 @@ module VacmanController
     #
     def enable!
       properties[:token_status] = 3
+      true
     end
 
 

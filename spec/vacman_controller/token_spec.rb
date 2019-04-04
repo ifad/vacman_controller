@@ -12,52 +12,192 @@ describe VacmanController::Token do
   let(:token) { tokens.first }
 
   describe '#serial' do
-    it 'returns the token serial number' do
-      expect(token.serial).to eq('VDP0000000')
-    end
+    subject { token.serial }
+
+    it { is_expected.to eq('VDP0000000') }
   end
 
   describe '#app_name' do
-    it 'returns the token app name' do
-      expect(token.app_name).to eq('RESPONLY    ')
+    subject { token.app_name }
+
+    it { is_expected.to eq('RESPONLY    ') }
+  end
+
+  describe '#inspect' do
+    subject { token.inspect }
+
+    it 'returns a printable version of the token' do
+      is_expected.to match(/serial="VDP0000000" app_name="RESPONLY    "/)
+    end
+  end
+
+  describe '#to_h' do
+    subject { token.to_h }
+
+    it 'returns the token low-level hash' do
+      is_expected.to be_a(Hash)
+    end
+
+    it { is_expected.to have_key('serial') }
+    it { is_expected.to have_key('app_name') }
+    it { is_expected.to have_key('blob') }
+    it { is_expected.to have_key('flags1') }
+    it { is_expected.to have_key('flags2') }
+
+    it 'does not change across invocations' do
+      id = token.to_h.object_id
+
+      expect(token.to_h.object_id).to be(id)
+    end
+  end
+
+  describe '#verify!' do
+    it { expect(token.verify!(token.generate)).to be(true) }
+
+    it do
+      expect { token.verify!('111111') }.to \
+        raise_error(VacmanController::Error, /Validation Failed/)
+    end
+
+    it 'does not crash when large strings are passed' do
+      expect { token.verify!('1' * 10000).to raise_error(VacmanController::Error) }
+    end
+
+    it { expect { token.verify!(token.generate) }.to change { token.to_h } }
+  end
+
+  describe '#verify' do
+    it { expect(token.verify(token.generate)).to be(true) }
+
+    it { expect(token.verify('111111')).to be(false) }
+
+    it { expect { token.verify(token.generate) }.to change { token.to_h } }
+
+    describe 'too many false password attempts will lock the digipass' do
+      it 'allows two invalid OTPs without locking' do
+        3.times do
+          expect(token.verify('000000')).to be(false)
+        end
+
+        expect(token.verify(token.generate)).to be(true)
+      end
     end
   end
 
   describe '#generate' do
+    subject { token.generate }
+
     it 'generates OTPs if allowed' do
-      expect(token.generate).to match(/\A[0-9]{6}\Z/)
+      is_expected.to match(/\A[0-9]{6}\Z/)
     end
   end
 
-  describe "#verify!" do
-    it "verifies a valid key ok" do
-      expect(token.verify!(token.generate)).to be(true)
-    end
+  context 'on tokens that support PINs' do
+    let(:dpx_filename) { 'sample_dpx/Demo_GO6.dpx' }
 
-    it "does NOT verify a invalid key and raise Error" do
-      expect {
-        token.verify!('111111')
-      }.to raise_error(VacmanController::Error, /Validation Failed/)
-    end
+    describe '#set_pin' do
+      context 'given a valid PIN' do
+        let(:pin) { 3137 }
 
-    it "does not crash when large strings are passed" do
-      expect { token.verify!('1' * 10000).to raise_error(VacmanController::Error) }
-    end
-  end
+        it { expect(token.set_pin(pin)).to be(true) }
 
-  describe "#verify" do
-    it "does NOT verify a invalid key and return false" do
-      expect(token.verify('111111')).to be(false)
-    end
-  end
+        it { expect { token.set_pin(pin) }.to change { token.to_h } }
 
-  describe "too many false password attempts will lock the digipass" do
-    it "allows two invalid OTPs without locking" do
-      2.times do
-        expect(token.verify('000000')).to be(false)
+        ## Works only on certain circumstances
+        ##
+        ## context do
+        ##   before { token.set_pin(pin) }
+
+        ##   it { expect(token.verify("3137#{token.generate}")).to be(true) }
+        ##   it { expect(token.verify("0000#{token.generate}")).to be(false) }
+        ## end
       end
 
-      expect(token.verify(token.generate)).to be(true)
+      context 'given an invalid PIN' do
+        let(:pin) { [1, 1234567890, 'fo'].shuffle.first }
+
+        it { expect { token.set_pin(pin) }.to raise_error(VacmanController::Error) }
+
+        it { expect { token.set_pin(pin) rescue nil }.to_not change { token.to_h } }
+      end
     end
+
+    describe '#enable_pin!' do
+      it { expect(token.enable_pin!).to be(true) }
+    end
+
+    describe '#disable_pin!' do
+      it { expect(token.disable_pin!).to be(true) }
+    end
+
+    describe '#force_pin_change!' do
+      it { expect(token.force_pin_change!).to be(true) }
+    end
+  end
+
+  context 'on tokens that do not support PINs' do
+    describe '#set_pin' do
+      it { expect { token.set_pin(1234) }.to raise_error(/PIN not supported/i) }
+    end
+
+    describe '#enable_pin!' do
+      it { expect { token.enable_pin! }.to raise_error(/invalid property value/i) }
+    end
+
+    describe '#disable_pin!' do
+      it { expect { token.disable_pin! }.to raise_error(/invalid property value/i) }
+    end
+
+    describe '#force_pin_change!' do
+      it { expect { token.force_pin_change! }.to raise_error(/invalid property value/i) }
+    end
+  end
+
+  describe '#disable!' do
+    it { expect(token.disable!).to be(true) }
+
+    context do
+      before { token.disable! }
+
+      it { expect(token.verify(token.generate)).to be(false) }
+    end
+  end
+
+  describe '#enable_primary_only!' do
+    it { expect(token.enable_primary_only!).to be(true) }
+
+    context do
+      before { token.enable_primary_only! }
+
+      it { expect(token.verify(token.generate)).to be(true) }
+    end
+  end
+
+  ## Don't have demo tokens to test this...
+  #
+  #describe '#enable_backup_only!' do
+  #  it { expect(token.enable_backup_only!).to be(true) }
+  #
+  #  context do
+  #    before { token.enable_backup_only! }
+  #
+  #    it { expect(token.verify(token.generate)).to be(false) }
+  #  end
+  #end
+
+  ## Don't have demo tokens to test this...
+  #
+  #describe '#enable!' do
+  #  it { expect(token.enable!).to be(true) }
+  #
+  #  context do
+  #    before { token.enable! }
+  #
+  #    it { expect(token.verify(token.generate)).to be(true) }
+  #  end
+  #end
+
+  describe '#properties' do
+    it { expect(token.properties).to be_a(VacmanController::Token::Properties) }
   end
 end

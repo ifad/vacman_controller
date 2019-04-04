@@ -10,16 +10,16 @@ describe VacmanController do
   end
 
   describe '.import' do
-    it "imports the right number of tokens" do
+    it 'imports the right number of tokens' do
       expect(hashes.count).to eq(20)
     end
 
-    it "have the right serials" do
+    it 'have the right serials' do
       expect(hashes.select {|e| e['serial'] =~ /VDP000000[01]/}.count).to eq(2)
     end
 
     context 'given an invalid key' do
-      let(:transport_key) { "00000000000000000000000000000000" }
+      let(:transport_key) { '00000000000000000000000000000000' }
 
       it { expect { hashes }.to raise_error(VacmanController::Error, /invalid transport key/) }
     end
