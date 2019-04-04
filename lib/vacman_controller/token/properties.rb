@@ -38,7 +38,7 @@ module VacmanController
       #
       def [](name)
         name  = name.to_s
-        value = VacmanController::LowLevel.get_token_property(@token.to_h, property, name)
+        value = VacmanController::LowLevel.get_token_property(@token.to_h, name)
 
         cast(name, value)
       end
@@ -79,8 +79,8 @@ module VacmanController
           min, max = PROPERTY_BOUNDS.fetch(name)
 
           if value < min || value > max
-            raise VacmanError,
-              "Invalid #{property} value provided: #{value}. " \
+            raise VacmanController::Error,
+              "Invalid #{name} value provided: #{value}. " \
               "Must be between greater than #{min} and less than #{max}."
           end
 
@@ -105,7 +105,7 @@ module VacmanController
         def cast(property, value)
 
           # Short-circuit on 'NA'
-          return nil if value == 'NA'
+          return nil if value == 'NA' or value == 'DISABLE'
 
           case property
           when # Integer values
@@ -144,11 +144,14 @@ module VacmanController
             'response_checksum',
             'triple_des_used'
 
-            value == 'YES'
+            case value
+            when 'YES' then true
+            when 'NO' then false
+            end
 
           when # Date/time values
             'last_time_used',
-            'virtual_token_grace_period',
+            'virtual_token_grace_period'
 
             # AAL2 returns UTC values, we add the timezone.
             Time.strptime("#{value} UTC", '%a %b %d %H:%M:%S %Y %Z')
