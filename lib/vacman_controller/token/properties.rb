@@ -143,7 +143,8 @@ module VacmanController
             'derivation_supported',
             'response_chk',
             'response_checksum',
-            'triple_des_used'
+            'triple_des_used',
+            'use_3des'
 
             case value
             when 'YES' then true
