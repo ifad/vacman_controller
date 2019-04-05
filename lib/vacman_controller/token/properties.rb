@@ -113,7 +113,7 @@ module VacmanController
             'pin_len',
             'pin_length',
             'pin_min_len',
-            'pin_min_length',
+            'pin_minimum_length',
             'last_time_shift',
             'virtual_token_remain_use',
             'error_count',
