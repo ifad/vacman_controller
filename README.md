@@ -22,4 +22,4 @@ to generate the Makefile and compile it.
 
 To run specs, execute
 
-    rspec
+    rake
