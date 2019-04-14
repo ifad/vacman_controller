@@ -6,9 +6,6 @@ require 'vacman_controller/error'
 # Wraps VACMAN Controller functionality for Ruby.
 #
 module VacmanController
-
-  VERSION = '0.5.0'
-
   class << self
     # Imports a .dpx file containing the token key material.
     #
