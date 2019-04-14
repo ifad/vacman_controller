@@ -11,7 +11,7 @@ task build: :compile
 
 Rake::ExtensionTask.new('vacman_controller') do |ext|
   ext.lib_dir = 'lib/vacman_controller'
-  ext.name = 'low_level'
+  ext.name    = 'vacman_low_level'
 end
 
 task default: [:clobber, :compile, :spec]

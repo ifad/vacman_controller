@@ -1,4 +1,4 @@
-require 'vacman_controller/low_level'
+require 'vacman_controller/vacman_low_level'
 require 'vacman_controller/token'
 require 'vacman_controller/kernel'
 require 'vacman_controller/error'
