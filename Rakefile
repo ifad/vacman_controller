@@ -15,3 +15,9 @@ Rake::ExtensionTask.new('vacman_controller') do |ext|
 end
 
 task default: [:clobber, :compile, :spec]
+
+require 'code_counter/engine'
+desc 'Print code statistics'
+task :stats do
+  puts CodeCounter::Engine.new.to_s
+end
