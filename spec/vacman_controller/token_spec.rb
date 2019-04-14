@@ -104,12 +104,12 @@ describe VacmanController::Token do
 
         ## Works only on certain circumstances
         ##
-        ## context do
-        ##   before { token.set_pin(pin) }
+        context 'vtoken' do
+          before { token.set_pin(pin) }
 
-        ##   it { expect(token.verify("3137#{token.generate}")).to be(true) }
-        ##   it { expect(token.verify("0000#{token.generate}")).to be(false) }
-        ## end
+          it { expect(token.verify("3137#{token.generate}")).to be(true) }
+          it { expect(token.verify("0000#{token.generate}")).to be(false) }
+        end if ENV['AAL2vtoken']
       end
 
       context 'given an invalid PIN' do
@@ -172,6 +172,12 @@ describe VacmanController::Token do
     end
   end
 
+  describe '#reset_error_count!' do
+    before { token.verify('foobar') }
+    subject { token.reset_error_count! }
+    it { expect { subject }.to change { token.properties.error_count }.from(1).to(0) }
+  end
+
   ## Don't have demo tokens to test this...
   #
   #describe '#enable_backup_only!' do
@@ -183,6 +189,9 @@ describe VacmanController::Token do
   #    it { expect(token.verify(token.generate)).to be(false) }
   #  end
   #end
+  describe '#enable_backup_only!' do
+    it { expect { token.enable_backup_only! }.to raise_error(/error 517/) }
+  end
 
   ## Don't have demo tokens to test this...
   #
@@ -195,6 +204,10 @@ describe VacmanController::Token do
   #    it { expect(token.verify(token.generate)).to be(true) }
   #  end
   #end
+  describe '#enable!' do
+    it { expect { token.enable! }.to raise_error(/error 517/) }
+  end
+
 
   describe '#properties' do
     it { expect(token.properties).to be_a(VacmanController::Token::Properties) }

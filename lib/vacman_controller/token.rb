@@ -110,7 +110,7 @@ module VacmanController
     # Enables the PIN on this token
     #
     def enable_pin!
-      properties[:pin_enabled] = 1
+      properties[:pin_enabled] = true
       true
     end
 
@@ -118,7 +118,7 @@ module VacmanController
     # Disables the PIN on this token
     #
     def disable_pin!
-      properties[:pin_enabled] = 2
+      properties[:pin_enabled] = false
       true
     end
 
@@ -126,7 +126,7 @@ module VacmanController
     # Forces PIN change on this token
     #
     def force_pin_change!
-      properties[:pin_change_forced] = 1
+      properties[:pin_change_forced] = true
       true
     end
 
@@ -142,7 +142,7 @@ module VacmanController
     # Sets the "disabled" token status
     #
     def disable!
-      properties[:token_status] = 0
+      properties[:token_status] = :disabled
       true
     end
 
@@ -150,7 +150,7 @@ module VacmanController
     # Set the primary application enabled status
     #
     def enable_primary_only!
-      properties[:token_status] = 1
+      properties[:token_status] = :primary_only
       true
     end
 
@@ -158,7 +158,7 @@ module VacmanController
     # Set the backup application enabled status
     #
     def enable_backup_only!
-      properties[:token_status] = 2
+      properties[:token_status] = :backup_only
       true
     end
 
@@ -166,7 +166,7 @@ module VacmanController
     # Set both primary and backup application enabled status
     #
     def enable!
-      properties[:token_status] = 3
+      properties[:token_status] = :enabled
       true
     end
 

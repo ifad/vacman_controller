@@ -40,7 +40,7 @@ module VacmanController
         name  = name.to_s
         value = VacmanController::LowLevel.get_token_property(@token.to_h, name)
 
-        cast(name, value)
+        read_cast(name, value)
       end
 
 
@@ -52,63 +52,114 @@ module VacmanController
       #   the property name. See +Token.property_names+
       #
       # value::
-      #   the property value. Only values convertible to integer are
-      #   supported.
+      #   the property value. The AAL2 library accepts only values
+      #   convertible to integer. For symmetry with +[]+, boolean
+      #   values are converted to the appropriate integer.
+      #
+      # see::
+      #   +write_cast!+
       #
       def []=(name, value)
         name  = name.to_s
-        value = value.to_i
-
-        check_bounded_property!(name, value)
+        value = write_cast!(name, value)
 
         VacmanController::LowLevel.set_token_property(@token.to_h, name, value)
       end
 
-
       protected
-        def bounded_property?(name)
-          PROPERTY_BOUNDS.key?(name)
+        #
+        def write_cast!(property, value)
+          case property
+            # Bounded integer values
+          when 'last_time_used'
+            write_check_bounds! property, value,
+              [631152000, 2147483647]
+
+          when 'last_time_shift'
+            write_check_bounds! property, value,
+              [-100_000, 100_000]
+
+          when 'pin_enabled'
+            value ? 1 : 2
+
+          when 'pin_change_forced'
+            if value
+              1
+            else
+              raise VacmanController::Error,
+                "Token property #{property} cannot be set to #{value.inspect}"
+            end
+
+          when 'pin_min_len', 'pin_minimum_length'
+            write_check_bounds! property, value,
+              [3, 8]
+
+          when 'virtual_token_grace_period'
+            write_check_bounds! property, value,
+              [1, 364]
+
+          when 'virtual_token_remain_use'
+            write_check_bounds! property, value,
+              [0, 254]
+
+          when 'error_count'
+            if value == 0
+              value
+            else
+              raise VacmanController::Error,
+                "Token property #{property} cannot be set to #{value.inspect}"
+            end
+
+          when 'event_value'
+            write_check_bounds! property, value,
+              [0, 4_294_967_294]
+
+          when 'token_status'
+            case value
+            when :disabled     then 0
+            when :primary_only then 1
+            when :backup_only  then 2
+            when :enabled      then 3
+            else
+              raise VacmanController::Error,
+                "Token property #{property} cannot be set to #{value.inspect}"
+            end
+
+          else
+            raise VacmanController::Error,
+              "Invalid or read-only property: #{property}"
+          end
         end
 
         # The library also does these checks, but we want to present
         # custom error message to the caller.
         #
-        def check_bounded_property!(name, value)
-          return unless bounded_property?(name)
-
-          min, max = PROPERTY_BOUNDS.fetch(name)
+        def write_check_bounds!(property, value, bounds)
+          min, max = bounds
 
           if value < min || value > max
             raise VacmanController::Error,
-              "Invalid #{name} value provided: #{value}. " \
+              "Invalid #{property} value provided: #{value}. " \
               "Must be between greater than #{min} and less than #{max}."
           end
 
-          true
+          value
         end
 
-        PROPERTY_BOUNDS = {
-          'last_time_used'             => [ 631152000, 2147483647 ],
 
-          'last_time_shift'            => [ -100_000, 100_000 ],
-
-          'pin_min_length'             => [ 3, 8 ],
-          'pin_minimum_length'         => [ 3, 8 ],
-
-          'virtual_token_grace_period' => [ 1, 364 ],
-
-          'virtual_token_remain_use'   => [ 0, 254 ],
-
-          'event_value'                => [ 0, 4_294_967_294 ],
-        }
-
-        def cast(property, value)
-
+        # Maps the given property value to a Ruby value for:
+        #
+        # * Integers
+        # * Booleans
+        # * Dates
+        # * Enumerations (Symbols)
+        #
+        def read_cast(property, value)
           # Short-circuit on 'NA'
           return nil if value == 'NA' or value == 'DISABLE'
 
           case property
-          when # Integer values
+          when  # Integer values
             'use_count',
             'pin_len',
             'pin_length',
@@ -123,7 +174,6 @@ module VacmanController
             'response_len',
             'response_length',
             'time_step'
-
             value.to_i
 
           when # Boolean values
@@ -178,6 +228,10 @@ module VacmanController
         end
 
       private
+        # Exposes a getter and setter method for each
+        # property name. Delegates error handling for
+        # invalid properties to +[]+ and +[]=+.
+        #
         def method_missing(name, *args, &block)
           prop, setter = name.to_s.match(/\A(.+?)(=)?\Z/).values_at(1, 2)
 

@@ -75,7 +75,7 @@ describe VacmanController::Token::Properties do
   end
 
   describe '[]=' do
-    context 'on a writeable property' do
+    context 'on an integer bounded property' do
       let(:prop) { :last_time_used }
 
       context 'within bounds' do
@@ -99,18 +99,130 @@ describe VacmanController::Token::Properties do
       end
     end
 
+    context 'on an enumerated property' do
+      let(:prop) { :token_status }
+      subject { token.properties[prop] = value }
+
+      context 'with a valid value' do
+        let(:value) { :disabled }
+        it { expect { subject }.to_not raise_error }
+      end
+
+      context 'with a bogus value' do
+        let(:value) { :foobar }
+        it { expect { subject }.to raise_error(/cannot be set to :foobar/) }
+      end
+    end
+
     context 'on a readonly property' do
-      let(:prop) { :time_based_algo }
+      subject { token.properties[:time_based_algo] = 1 }
 
-      subject { token.properties[prop] = 1 }
-
-      it { expect { subject }.to raise_error(/Invalid property/) }
+      it { expect { subject }.to raise_error(/Invalid or read-only property/) }
     end
   end
 
   describe '#method_missing' do
-    it { expect(token.properties.pin_enabled).to be(false) }
+    context 'on a PIN-enabled token' do
+      let(:dpx_filename) { 'sample_dpx/Demo_GO6.dpx' }
+
+      it { expect(token.properties.pin_supported).to be(true) }
+
+      it { expect(token.properties.pin_enabled).to be(true) }
+
+      context 'pin_enabled' do
+        before { token.properties.pin_enabled = false }
+
+        subject { token.properties.pin_enabled = true }
+
+        it { expect { subject }.to change { token.properties.pin_enabled }.from(false).to(true) }
+
+        after { token.properties.pin_enabled = true }
+      end
+
+      context 'pin_change_forced = true' do
+        subject { token.properties.pin_change_forced = true }
+
+        it { expect { subject }.to change { token.properties.pin_change_forced }.from(false).to(true) }
+      end
+
+      context 'pin_change_forced = false' do
+        subject { token.properties.pin_change_forced = false }
+
+        it { expect { subject }.to raise_error(/cannot be set to false/) }
+      end
+
+      context 'pin_minimum_length' do
+        before { token.properties.pin_minimum_length = 3 }
+        subject { token.properties.pin_minimum_length = 8 }
+        it { expect { subject }.to change { token.properties.pin_minimum_length }.from(3).to(8) }
+      end
+    end
+
+    context 'on a token without PINs' do
+      it { expect(token.properties.pin_supported).to be(false) }
+
+      it { expect(token.properties.pin_enabled).to be(false) }
+
+      it { expect { token.properties.pin_enabled = true }.to raise_error(/Invalid property value/) }
+    end
 
     it { expect(token.properties.last_time_used).to eq(Time.utc(1970)) }
+
+    it { expect(token.properties.virtual_token_grace_period).to be(nil) }
+
+    context 'error_count' do
+      it { expect(token.properties.error_count).to be(0) }
+
+      context 'when resetting' do
+        before { token.verify('foobar') }
+        subject { token.properties.error_count = 0 }
+        it { expect { subject }.to change { token.properties.error_count }.from(1).to(0) }
+      end
+
+      context 'when setting a specific value' do
+        subject { token.properties.error_count = 123 }
+        it { expect { subject }.to raise_error(/error_count cannot be set to 123/) }
+      end
+    end
+
+    it { expect(token.properties.auth_mode).to be(:response_only) }
+
+    context 'last_time_shift' do
+      before { token.properties.last_time_shift = 0 }
+      subject { token.properties.last_time_shift = 10 }
+      it { expect { subject }.to change { token.properties.last_time_shift }.from(0).to(10) }
+    end
+
+    context 'virtual_token_grace_period' do
+      before { token.properties.virtual_token_grace_period = 1 }
+
+      subject { token.properties.virtual_token_grace_period = 320 }
+      it { expect { subject }.to change { token.properties.virtual_token_grace_period } }
+           ## Doesn't work due do clock approximations done in AAL2.
+           #.from(Time.now.utc.round + 86400).to(Time.now.utc.round + 320 * 86400) }
+
+      context 'read approximation' do
+        let(:time_difference) {
+          (Time.now.utc.round + 320 * 86400) -
+          token.properties.virtual_token_grace_period
+        }
+
+        before { subject }
+
+        it { expect(time_difference).to be < 2 }
+      end
+    end
+
+    context 'virtual_token_remain_use' do
+      before { token.properties.virtual_token_remain_use = 1 }
+      subject { token.properties.virtual_token_remain_use = 220 }
+      it { expect { subject }.to change { token.properties.virtual_token_remain_use } }
+    end
+
+    context 'event_value' do
+      # Don't have event-based tokens to test with. Test the error case
+      subject { token.properties.event_value = 123 }
+      it { expect { subject }.to raise_error(/error 517/) }
+    end
   end
 end
