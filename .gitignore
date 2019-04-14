@@ -5,6 +5,7 @@ Makefile
 .*.sw?
 .bundle
 .rake*
+.byebug_history
 Gemfile.lock
 pkg
 coverage

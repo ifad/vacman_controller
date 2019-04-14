@@ -5,5 +5,7 @@ SimpleCov.start do
   add_filter '.bundle'
 end
 
+require 'byebug'
+
 require 'rspec'
 require 'vacman_controller'
