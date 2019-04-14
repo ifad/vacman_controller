@@ -1,5 +1,4 @@
-require 'rspec'
-require 'vacman_controller'
+require 'spec_helper'
 
 describe VacmanController::Token::Properties do
   let(:dpx_filename) { 'sample_dpx/VDP0000000.dpx' }

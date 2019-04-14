@@ -7,3 +7,4 @@ Makefile
 .rake*
 Gemfile.lock
 pkg
+coverage

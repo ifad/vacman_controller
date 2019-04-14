@@ -1,5 +1,4 @@
-require 'rspec'
-require 'vacman_controller'
+require 'spec_helper'
 
 describe VacmanController::Kernel do
 
