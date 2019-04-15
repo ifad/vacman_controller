@@ -3,6 +3,12 @@ dist: trusty
 services: docker
 
 env: DOCKER=centos
-before_install: true
-install: docker build -t vacman_controller -f .travis_Dockerfile .
-script: docker run -t vacman_controller
+
+before_install:
+  - sed -i -e "s#@@AAL2_RPM@@#$AAL2_RPM#" .travis_Dockerfile
+
+install:
+  - docker build -t vacman_controller -f .travis_Dockerfile .
+
+script:
+  - docker run -t vacman_controller

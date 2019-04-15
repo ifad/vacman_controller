@@ -15,7 +15,7 @@ RUN yum -y install \
   gcc \
   make
 
-RUN rpm -i ${AAL2_RPM}
+RUN rpm -i @@AAL2_RPM@@
 
 RUN gem update --system
 RUN gem install bundler
