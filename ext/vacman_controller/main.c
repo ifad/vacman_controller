@@ -7,7 +7,6 @@
  * (C) 2013 https://github.com/mlankenau
  * (C) 2019 m.barnaba@ifad.org
  */
-#define RUBY_EXPORT
 #include "vacman_controller.h"
 
 /*
