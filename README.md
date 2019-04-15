@@ -4,6 +4,7 @@ VASCO VACMAN Controller
 [![Code Climate][code-analysis-badge]][code-analysis]
 [![Gem Version][gem-version-badge]][gem-version]
 [![Docs analysis][docs-analysis-badge]][docs-analysis]
+[![Security check][security-check-badge]][security-check]
 
 VACMAN Controller is VASCO's implementation of OTP physical and virtual
 devices, revolving around the AAL2 library.
@@ -61,3 +62,5 @@ Contributing
 [docs-analysis-badge]: http://inch-ci.org/github/ifad/vacman_controller.svg?branch=master
 [gem-version]: https://rubygems.org/gems/vacman_controller
 [gem-version-badge]: https://badge.fury.io/rb/vacman_controller.svg
+[security-check]: https://hakiri.io/github/ifad/vacman_controller/master
+[security-check-badge]: https://hakiri.io/github/ifad/vacman_controller/master.svg
