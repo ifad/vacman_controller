@@ -10,14 +10,16 @@ RUN yum -y install \
   --setopt=deltarpm=0 \
   --setopt=install_weak_deps=false \
   --setopt=tsflags=nodocs \
-  ruby-devel \
   git \
   gcc \
-  make
+  make \
+  centos-release-scl
+
+RUN yum -y install \
+  rh-ruby23 \
+  rh-ruby23-ruby-devel \
+  rh-ruby23-rubygems
 
 RUN rpm -i @@AAL2_RPM@@
-
-RUN gem update --system
-RUN gem install bundler
 
 CMD sh .travis_centos.sh
