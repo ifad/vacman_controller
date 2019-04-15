@@ -2,7 +2,7 @@
 
 set -eux
 
-scl enable rh-ruby23 bash
+source /opt/rh/rh-ruby23/enable
 
 gem install bundler
 
