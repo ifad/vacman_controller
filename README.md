@@ -1,6 +1,7 @@
 VASCO VACMAN Controller
 =======================
 
+[![Build status][build-status-badge]][build-status]
 [![Code Climate][code-analysis-badge]][code-analysis]
 [![Gem Version][gem-version-badge]][gem-version]
 [![Docs analysis][docs-analysis-badge]][docs-analysis]
@@ -55,6 +56,8 @@ Contributing
  4. Push to the branch (`git push origin my-new-feature`)
  5. Create new Pull Request
 
+[build-status]: https://travis-ci.org/ifad/vacman_controller
+[build-status-badge]: https://travis-ci.org/ifad/vacman_controller.svg?branch=master
 [code-analysis]: https://codeclimate.com/github/ifad/vacman_controller
 [code-analysis-badge]: https://codeclimate.com/github/ifad/vacman_controller.svg
 [docs-analysis]: http://inch-ci.org/github/ifad/vacman_controller
