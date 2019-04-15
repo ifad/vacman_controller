@@ -15,10 +15,9 @@ files, generate OTPs and verify them.
 Installation
 ------------
 
-Get Vacman Controller library from the [TrustBuilder
-repo](https://repository.trustbuilder.io/head/trustbuilder/custom/), download
-the `aal2sdk-*.rpm` and place its contents in `/opt/vasco`. The Ruby extension
-looks for `/opt/vasco/VACMAN_Controller-*`
+Get Vacman Controller library from VASCO. You should receive an
+`aal2sdk-*.rpm` package. Install it, it will place its contents in
+`/opt/vasco`. The Ruby extension looks for `/opt/vasco/VACMAN_Controller-*`
 
 Add to your application Gemfile
 
