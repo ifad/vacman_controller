@@ -1,6 +1,7 @@
 VASCO VACMAN Controller
 =======================
 
+[![Build status][build-status-badge]][build-status]
 [![Code Climate][code-analysis-badge]][code-analysis]
 [![Gem Version][gem-version-badge]][gem-version]
 [![Docs analysis][docs-analysis-badge]][docs-analysis]
@@ -15,10 +16,9 @@ files, generate OTPs and verify them.
 Installation
 ------------
 
-Get Vacman Controller library from the [TrustBuilder
-repo](https://repository.trustbuilder.io/head/trustbuilder/custom/), download
-the `aal2sdk-*.rpm` and place its contents in `/opt/vasco`. The Ruby extension
-looks for `/opt/vasco/VACMAN_Controller-*`
+Get Vacman Controller library from VASCO. You should receive an
+`aal2sdk-*.rpm` package. Install it, it will place its contents in
+`/opt/vasco`. The Ruby extension looks for `/opt/vasco/VACMAN_Controller-*`
 
 Add to your application Gemfile
 
@@ -56,6 +56,8 @@ Contributing
  4. Push to the branch (`git push origin my-new-feature`)
  5. Create new Pull Request
 
+[build-status]: https://travis-ci.org/ifad/vacman_controller
+[build-status-badge]: https://travis-ci.org/ifad/vacman_controller.svg?branch=master
 [code-analysis]: https://codeclimate.com/github/ifad/vacman_controller
 [code-analysis-badge]: https://codeclimate.com/github/ifad/vacman_controller.svg
 [docs-analysis]: http://inch-ci.org/github/ifad/vacman_controller

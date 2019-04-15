@@ -158,7 +158,11 @@ describe VacmanController::Token do
     context do
       before { token.disable! }
 
-      it { expect(token.verify(token.generate)).to be(false) }
+      if ENV['AAL2vtoken']
+        it { expect(token.verify(token.generate)).to be(false) }
+      else
+        it { expect { token.verify(token.generate) }.to raise_error(/Application disabled/) }
+      end
     end
   end
 
@@ -169,6 +173,7 @@ describe VacmanController::Token do
       before { token.enable_primary_only! }
 
       it { expect(token.verify(token.generate)).to be(true) }
+      it { expect { token.generate }.to_not raise_error }
     end
   end
 
