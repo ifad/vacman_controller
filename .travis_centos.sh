@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eux
+set -ex
 
 source /opt/rh/rh-ruby23/enable
 
