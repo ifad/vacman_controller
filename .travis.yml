@@ -1,0 +1,8 @@
+sudo: required
+dist: trusty
+services: docker
+
+env: DOCKER=centos
+before_install: true
+install: docker build -t vacman_controller -f .travis_Dockerfile .
+script: docker run -t vacman_controller

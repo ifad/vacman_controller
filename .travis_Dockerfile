@@ -1,0 +1,23 @@
+FROM centos:7
+
+WORKDIR /build
+COPY . .
+
+RUN yum -y update
+
+# The options are to install faster.
+RUN yum -y install \
+  --setopt=deltarpm=0 \
+  --setopt=install_weak_deps=false \
+  --setopt=tsflags=nodocs \
+  ruby-devel \
+  git \
+  gcc \
+  make
+
+RUN rpm -i ${AAL2_RPM}
+
+RUN gem update --system
+RUN gem install bundler
+
+CMD sh .travis_centos.sh
