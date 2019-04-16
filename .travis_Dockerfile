@@ -27,4 +27,4 @@ RUN yum -y install \
 
 RUN rpm -i @@AAL2_RPM@@
 
-CMD sh .travis_centos.sh
+CMD sh .travis_run_build.sh
