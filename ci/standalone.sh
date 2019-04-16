@@ -6,4 +6,4 @@ export CC_TEST_REPORTER_ID=47866d6bec01d504297b03fb6b387103da34b1ac72a7bad784eaf
 
 docker build -t vacman_controller -f ci/Dockerfile .
 sh -x ci/prepare_env.sh
-docker run --interactive --tty --env-file ci/env --workdir /build vacman_controller sh ci/run_build.sh
+docker run --interactive --tty --env-file ci/env --workdir /build vacman_controller
