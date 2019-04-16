@@ -3,6 +3,7 @@ VASCO VACMAN Controller
 
 [![Build status][build-status-badge]][build-status]
 [![Code Climate][code-analysis-badge]][code-analysis]
+[![Test Coverage][test-coverage-badge]][test-coverage]
 [![Gem Version][gem-version-badge]][gem-version]
 [![Docs analysis][docs-analysis-badge]][docs-analysis]
 [![Security check][security-check-badge]][security-check]
@@ -66,3 +67,5 @@ Contributing
 [gem-version-badge]: https://badge.fury.io/rb/vacman_controller.svg
 [security-check]: https://hakiri.io/github/ifad/vacman_controller/master
 [security-check-badge]: https://hakiri.io/github/ifad/vacman_controller/master.svg
+[test-coverage]: https://codeclimate.com/github/ifad/vacman_controller
+[test-coverage-badge]: https://codeclimate.com/github/ifad/vacman_controller/badges/coverage.svg
