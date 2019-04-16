@@ -1,17 +1,26 @@
 #!/usr/bin/env bash
 
-if [ -z "$AAL2_RPM" ]; then
-  echo "FATAL: AAL2_RPM environment variable is not defined"
-  exit -1
-fi
+# This script is run before the build is run and it is used to pass
+# settings to the container via environment variables.
+#
+# Please define these in your environment if running the build locally.
+#
+# We are using Travis Environment Variables to have these saved there
+# and not be displayed in the build log.
+#
 
-if [ -z "$CC_TEST_REPORTER_ID" ]; then
-  echo "FATAL: CC_TEST_REPORTER_ID environment variable is not defined"
-  exit -1
-fi
-
+VARS="AAL2_RPM CC_TEST_REPORTER_ID"
 ENV_FILE=ci/env
 
 :> $ENV_FILE
-echo AAL2_RPM=$AAL2_RPM >> $ENV_FILE
-echo CC_TEST_REPORTER_ID=$CC_TEST_REPORTER_ID >> $ENV_FILE
+
+for var in $VARS; do
+  val=${!var}
+
+  if [ -z "$val" ];then
+    echo "FATAL: $var environment variable is not defined"
+    exit -1
+  fi
+
+  echo $var=$val >> $ENV_FILE
+done
