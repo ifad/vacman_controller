@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -ex
+
+# Runs the arguments with the chosen Ruby version
+# and with the VACMAN controller RPM installed.
+#
+rpm -i $AAL2_RPM
+source /opt/rh/rh-ruby23/enable
+exec "$@"

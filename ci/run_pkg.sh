@@ -10,6 +10,4 @@ if [ ! -f $HOME/.gem/credentials ]; then
   exit -1
 fi
 
-source ci/run_bundle.sh
-
-bundle exec rake release
+bash ./ci/exec bundle exec rake release

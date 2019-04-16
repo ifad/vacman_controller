@@ -1,9 +1,19 @@
 #/usr/bin/env bash
 #
-# This script builds the docker container, transfers private environment
-# variables into the docker env file and runs the CMD specified in the
-# Dockerfile.
+# This script governs the actions we execute in the docker container.
 #
+# If invoked without arguments, it builds the docker container and runs
+# the test suite within it.
+#
+# It can be run with:
+#
+#  all    -- build and run tests
+#  build  -- build the container only
+#  test   -- launches run_build.sh in the last built container
+#  pkg    -- launches run_pkg.sh in the last built container
+#  shell  -- launches a shell in the last built container
+#
+
 set -ex
 
 docker_build() {
@@ -27,7 +37,7 @@ if [ "$stage" = 'all' -o "$stage" = 'build' ]; then
   ./ci/prepare_env.sh
 fi
 
-if [ "$stage" = 'all' -o "$stage" = 'run' ]; then
+if [ "$stage" = 'all' -o "$stage" = 'test' ]; then
   docker_bash ci/run_build.sh
 fi
 
@@ -37,5 +47,5 @@ if [ "$stage" = 'pkg' ]; then
 fi
 
 if [ "$stage" = 'shell' ]; then
-  docker_bash
+  docker_bash ci/exec bash
 fi

@@ -10,8 +10,6 @@ set -ex
 
 export USER=root
 
-source ci/run_bundle.sh
-
 # Install CodeClimate test reporter
 export CC_TEST_REPORTER_URL=https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
 curl -L $CC_TEST_REPORTER_URL -o cc-test-reporter
@@ -22,7 +20,7 @@ chmod +x cc-test-reporter
 ./cc-test-reporter before-build
 
 # Run the build
-bundle exec rake
+bash ./ci/exec bundle exec rake
 build_status=$?
 
 echo "Build exited with $?"

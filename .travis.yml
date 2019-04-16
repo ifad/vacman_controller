@@ -9,4 +9,4 @@ install:
   - ./ci/standalone.sh build
 
 script:
-  - ./ci/standalone.sh run
+  - ./ci/standalone.sh test
