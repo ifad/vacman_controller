@@ -43,7 +43,7 @@ build_status=$?
 
 echo "Build exited with $?"
 
-./cc-test-reporter after-build
+./cc-test-reporter after-build --exit-code $build_status
 
 # Return build status to the caller
 exit $build_status
