@@ -4,7 +4,13 @@ set -ex
 
 source /opt/rh/rh-ruby23/enable
 
+command -v ruby
+ruby -v
+
 gem install bundler
+
+command -v bundle
+bundle -v
 
 bundle install --path .bundle
 
