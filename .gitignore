@@ -6,6 +6,7 @@ Makefile
 .bundle
 .rake*
 .byebug_history
+.travis_env
 Gemfile.lock
 pkg
 coverage

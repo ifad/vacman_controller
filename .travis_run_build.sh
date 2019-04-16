@@ -6,6 +6,8 @@ export USER=root
 
 export CC_TEST_REPORTER_URL=https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
 
+rpm -i $AAL2_RPM
+
 source /opt/rh/rh-ruby23/enable
 
 command -v ruby

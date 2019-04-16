@@ -3,8 +3,6 @@ FROM centos:7
 WORKDIR /build
 COPY . .
 
-ENV CC_TEST_REPORTER_ID @@CC_TEST_REPORTER_ID@@
-
 RUN yum -y update
 
 # The options are to install faster.
@@ -24,7 +22,5 @@ RUN yum -y install \
   rh-ruby23 \
   rh-ruby23-ruby-devel \
   rh-ruby23-rubygems
-
-RUN rpm -i @@AAL2_RPM@@
 
 CMD sh .travis_run_build.sh
