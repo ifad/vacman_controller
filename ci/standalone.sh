@@ -3,5 +3,5 @@
 set -ex
 
 docker build -t vacman_controller -f ci/Dockerfile .
-sh -x ci/prepare_env.sh
+bash ci/prepare_env.sh
 docker run --interactive --tty --env-file ci/env --workdir /build vacman_controller
