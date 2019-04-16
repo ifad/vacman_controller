@@ -7,10 +7,10 @@ env:
   - CC_TEST_REPORTER_ID=47866d6bec01d504297b03fb6b387103da34b1ac72a7bad784eaf52d85fc7bf8
 
 install:
-  - docker build -t vacman_controller -f .travis_Dockerfile .
+  - docker build -t vacman_controller -f ci/Dockerfile .
 
 before_script:
-  - sh -x .travis_prepare_environment.sh
+  - sh -x ci/prepare_env.sh
 
 script:
-  - docker run --interactive --tty --env-file .travis_env vacman_controller
+  - docker run --interactive --tty --env-file ci/env --workdir /build vacman_controller sh ci/run_build.sh
