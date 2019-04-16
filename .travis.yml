@@ -5,5 +5,8 @@ services: docker
 env:
   - DOCKER=centos
 
+install:
+  - ./ci/standalone.sh build
+
 script:
-  - sh ci/standalone.sh
+  - ./ci/standalone.sh run

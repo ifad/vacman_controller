@@ -22,5 +22,3 @@ RUN yum -y install \
   rh-ruby23 \
   rh-ruby23-ruby-devel \
   rh-ruby23-rubygems
-
-CMD sh ci/run_build.sh

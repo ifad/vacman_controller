@@ -35,7 +35,7 @@ chmod +x cc-test-reporter
 
 ./cc-test-reporter -v
 
-./cc-test-reporter -d before-build
+./cc-test-reporter before-build
 
 # Run the build
 bundle exec rake
@@ -43,7 +43,7 @@ build_status=$?
 
 echo "Build exited with $?"
 
-./cc-test-reporter -d after-build
+./cc-test-reporter after-build
 
 # Return build status to the caller
 exit $build_status
