@@ -79,8 +79,8 @@ module VacmanController
     end
 
 
-    # Generate an OTPfrom this token. This does the same as hitting the button
-    # on the hardware token.
+    # Generate an OTP from this token. This does the same as hitting the
+    # button on the hardware token.
     #
     # == Returns:
     # The OTP as a String. The OTP is only valid for a limited time period.
@@ -89,6 +89,24 @@ module VacmanController
     #
     def generate
       VacmanController::LowLevel.generate_password(@token_hash)
+    end
+
+
+    # Generate activation data from the token blob and the digipass parameters
+    # embodied in the token static initialisation vector.
+    #
+    # == Returns:
+    # The token serial number and the activation code as an Array, suitable
+    # for multiple assignment.
+    #
+    # Not all tokens support activation data generation. This is determined by
+    # the DPX having a static vector or not. You can check whether your token
+    # instance has a static vector by assessing the presence of the 'sv' key
+    # in the token hash.
+    #
+    def activation
+      ad = VacmanController::LowLevel.generate_activation(@token_hash)
+      [ ad.fetch('serial').scan(/\d(\d)/).flatten.join, ad.fetch('activation') ]
     end
 
 

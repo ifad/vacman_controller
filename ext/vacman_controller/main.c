@@ -22,7 +22,10 @@ void Init_vacman_low_level(void) {
 
   /* Global methods */
   rb_define_singleton_method(lowlevel, "library_version",       vacman_library_version, 0);
+
+  /* DPX methods */
   rb_define_singleton_method(lowlevel, "import",                vacman_dpx_import, 2);
+  rb_define_singleton_method(lowlevel, "generate_activation",   vacman_dpx_generate_token_activation, 1);
 
   /* Token methods */
   rb_define_singleton_method(lowlevel, "token_property_names",  vacman_token_get_property_names, 0);

@@ -37,11 +37,15 @@ VALUE vacman_token_verify_password(VALUE module, VALUE token, VALUE password);
 VALUE vacman_token_generate_password(VALUE module, VALUE token);
 
 /* Token interchange format between Ruby and libaal2 (serialize.c) */
-void vacman_rbhash_to_digipass(VALUE token, TDigipassBlob* dpdata);
 void vacman_digipass_to_rbhash(TDigipassBlob* dpdata, VALUE hash);
+void vacman_digipass_to_rbhash_sv(TDigipassBlob* dpdata, aat_ascii* dpsv, VALUE hash);
+
+void vacman_rbhash_to_digipass(VALUE token, TDigipassBlob* dpdata);
+void vacman_rbhash_to_digipass_sv(VALUE token, TDigipassBlob* dpdata, aat_ascii* dpsv, aat_int32 dpsv_len);
 
 /* DPX methods (dpx.c) */
 VALUE vacman_dpx_import(VALUE module, VALUE filename, VALUE key);
+VALUE vacman_dpx_generate_token_activation(VALUE module, VALUE token);
 
 #if defined(__cplusplus)
 #if 0

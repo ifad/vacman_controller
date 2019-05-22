@@ -36,7 +36,30 @@ void vacman_rbhash_to_digipass(VALUE token, TDigipassBlob* dpdata) {
 }
 
 /*
- * Convert a TDigipassBlob structure into a Ruby Hash
+ * Convert a Ruby Hash with the required keys to a TDigipassBlob structure,
+ * and extract the token static vector into the buffer pointed to by dpsv,
+ * copying at most dpsv_len bytes.
+ *
+ * The inner beauty of using an hash to store this data back and forth is
+ * that optional data such as the static vector can only be taken into account
+ * in routines that need it, leaving it completely opaque for the rest of the
+ * code.
+ *
+ * Given that the token hash is meant to be updated by the calls, and given
+ * that everything is allocated on the stack, this stays threadsafe and does
+ * not induce oddities as no routine here is removing keys from the provided
+ * hash - only using the ones that are needed.
+ */
+void vacman_rbhash_to_digipass_sv(VALUE token, TDigipassBlob* dpdata, aat_ascii* dpsv, aat_int32 dpsv_len) {
+  vacman_rbhash_to_digipass(token, dpdata);
+
+  VALUE sv = rbhash_get_key(token, "sv", T_STRING);
+
+  strncpy(dpsv, rb_string_value_cstr(&sv), dpsv_len);
+}
+
+/*
+ * Convert a TDigipassBlob structure into a Ruby Hash.
  */
 void vacman_digipass_to_rbhash(TDigipassBlob* dpdata, VALUE hash) {
   char buffer[256];
@@ -55,6 +78,19 @@ void vacman_digipass_to_rbhash(TDigipassBlob* dpdata, VALUE hash) {
 
   rb_hash_aset(hash, rb_str_new2("flags1"), rb_fix_new(dpdata->DPFlags[0]));
   rb_hash_aset(hash, rb_str_new2("flags2"), rb_fix_new(dpdata->DPFlags[1]));
+}
+
+/*
+ * Convert the given TDigipassBlob and the given token static vector into a
+ * Ruby hash.
+ *
+ * Calls vacman_digipass_to_rbhash() and then adds to it the additional "sv"
+ * key with the token static vector passed in as a C string.
+ */
+void vacman_digipass_to_rbhash_sv(TDigipassBlob* dpdata, aat_ascii* dpsv, VALUE hash) {
+  vacman_digipass_to_rbhash(dpdata, hash);
+
+  rb_hash_aset(hash, rb_str_new2("sv"), rb_str_new2(dpsv));
 }
 
 /*

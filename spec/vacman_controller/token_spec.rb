@@ -42,6 +42,7 @@ describe VacmanController::Token do
     it { is_expected.to have_key('blob') }
     it { is_expected.to have_key('flags1') }
     it { is_expected.to have_key('flags2') }
+    it { is_expected.to have_key('sv') }
 
     it 'does not change across invocations' do
       id = token.to_h.object_id
@@ -88,6 +89,24 @@ describe VacmanController::Token do
 
     it 'generates OTPs if allowed' do
       is_expected.to match(/\A[0-9]{6}\Z/)
+    end
+  end
+
+  describe '#activation' do
+    subject { token.activation }
+
+    context 'on tokens that support activation data generation' do
+      let(:dpx_filename) { 'sample_dpx/Demo_DP4MobileES.dpx' }
+
+      it { expect(subject).to eq(['0000001', '20419498810810562569']) }
+
+      it { expect { subject }.to_not change { token.to_h } }
+      it { expect { token.verify('1234') }.to_not change { token.to_h['sv'] } }
+    end
+
+    context 'on tokens that do not support activation data generation' do
+      it { expect { subject }.to raise_error(VacmanController::Error, /Invalid Static Vector Length/) }
+      it { expect { subject rescue nil }.to_not change { token.to_h } }
     end
   end
 
