@@ -165,6 +165,27 @@ VALUE vacman_token_set_pin(VALUE module, VALUE token, VALUE pin) {
 
 
 /*
+ * Resets the token error count and the time window shift.
+ */
+VALUE vacman_token_reset_info(VALUE module, VALUE token) {
+  TDigipassBlob dpdata;
+
+  vacman_rbhash_to_digipass(token, &dpdata);
+
+  aat_int32 result = AAL2ResetTokenInfo(&dpdata, &g_KernelParms);
+
+  vacman_digipass_to_rbhash(&dpdata, token);
+
+  if (result == 0) {
+    return Qtrue;
+  } else {
+    vacman_library_error("AAL2ResetTokenInfo", result);
+    return Qnil;
+  }
+}
+
+
+/*
  * Verifies the given OTP against the given token.
  */
 VALUE vacman_token_verify_password(VALUE module, VALUE token, VALUE password) {

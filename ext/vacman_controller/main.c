@@ -32,6 +32,7 @@ void Init_vacman_low_level(void) {
   rb_define_singleton_method(lowlevel, "get_token_property",    vacman_token_get_property, 2);
   rb_define_singleton_method(lowlevel, "set_token_property",    vacman_token_set_property, 3);
   rb_define_singleton_method(lowlevel, "set_token_pin",         vacman_token_set_pin, 2);
+  rb_define_singleton_method(lowlevel, "reset!",                vacman_token_reset_info, 1);
   rb_define_singleton_method(lowlevel, "verify_password",       vacman_token_verify_password, 2);
   rb_define_singleton_method(lowlevel, "generate_password",     vacman_token_generate_password, 1);
 

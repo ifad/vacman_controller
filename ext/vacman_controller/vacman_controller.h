@@ -33,6 +33,7 @@ VALUE vacman_token_get_property_names();
 VALUE vacman_token_get_property(VALUE module, VALUE token, VALUE property);
 VALUE vacman_token_set_property(VALUE module, VALUE token, VALUE property, VALUE rbval);
 VALUE vacman_token_set_pin(VALUE module, VALUE token, VALUE pin);
+VALUE vacman_token_reset_info(VALUE module, VALUE token);
 VALUE vacman_token_verify_password(VALUE module, VALUE token, VALUE password);
 VALUE vacman_token_generate_password(VALUE module, VALUE token);
 

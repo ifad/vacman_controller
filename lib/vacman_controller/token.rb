@@ -121,6 +121,13 @@ module VacmanController
     end
 
 
+    # Resets error count and time window
+    #
+    def reset!
+      VacmanController::LowLevel.reset!(@token_hash)
+    end
+
+
     ####################################################################
     ##### Properties Management
     ####################################################################

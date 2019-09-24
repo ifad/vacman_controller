@@ -79,7 +79,11 @@ describe VacmanController::Token do
           expect(token.verify('000000')).to be(false)
         end
 
+        expect(token.properties.error_count).to eq(3)
+
         expect(token.verify(token.generate)).to be(true)
+
+        expect(token.properties.error_count).to eq(0)
       end
     end
   end
@@ -168,6 +172,16 @@ describe VacmanController::Token do
 
     describe '#force_pin_change!' do
       it { expect { token.force_pin_change! }.to raise_error(/invalid property value/i) }
+    end
+  end
+
+  describe '#reset!' do
+    it { expect(token.reset!).to be(true) }
+
+    context do
+      before { 3.times { token.verify('foobar') } }
+      subject { token.reset! }
+      it { expect { subject }.to change { token.properties.error_count }.from(3).to(0) }
     end
   end
 
