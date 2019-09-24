@@ -73,16 +73,41 @@ describe VacmanController::Token do
 
     it { expect { token.verify(token.generate) }.to change { token.to_h } }
 
-    describe 'too many false password attempts will lock the digipass' do
-      it 'allows two invalid OTPs without locking' do
-        3.times do
-          expect(token.verify('000000')).to be(false)
-        end
+    context 'lockout' do
+      before { expect(VacmanController::Kernel['IThreshold']).to eq(3) }
 
-        expect(token.properties.error_count).to eq(3)
+      # This is not completely clear at the moment, but it seems that
+      # DiagLevel is driving the lockout value and not IThreshold.
+      #
+      before { VacmanController::Kernel['DiagLevel'] = VacmanController::Kernel['IThreshold'] }
+
+      it 'allows 2 invalid OTPs without locking' do
+        2.times { expect(token.verify('000000')).to be(false) }
+
+        expect(token.properties.error_count).to eq(2)
 
         expect(token.verify(token.generate)).to be(true)
 
+        expect(token.properties.error_count).to eq(0)
+      end
+
+      it 'locks out after 3 attempts' do
+        otp = token.generate
+
+        # Lock it out
+        3.times { expect(token.verify('000000')).to be(false) }
+        expect(token.properties.error_count).to eq(3)
+
+        # Verify lockout
+        expect(token.verify(otp)).to be(false)
+        expect(token.properties.error_count).to eq(4)
+
+        # Reset it
+        expect(token.reset!).to be(true)
+        expect(token.properties.error_count).to eq(0)
+
+        # Verify it clicks
+        expect(token.verify(token.generate)).to be(true)
         expect(token.properties.error_count).to eq(0)
       end
     end
@@ -179,9 +204,9 @@ describe VacmanController::Token do
     it { expect(token.reset!).to be(true) }
 
     context do
-      before { 3.times { token.verify('foobar') } }
+      before { 5.times { token.verify('foobar') } }
       subject { token.reset! }
-      it { expect { subject }.to change { token.properties.error_count }.from(3).to(0) }
+      it { expect { subject }.to change { token.properties.error_count }.from(5).to(0) }
     end
   end
 
