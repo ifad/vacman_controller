@@ -13,7 +13,7 @@ else
   exit 1
 end
 
-append_cflags "-I#{VACMAN_CONTROLLER}/include -Wall -std=c99 -Wno-declaration-after-statement"
+append_cflags "-I#{VACMAN_CONTROLLER}/include -fcommon -Wall -std=c99 -Wno-declaration-after-statement"
 append_ldflags "-L#{VACMAN_CONTROLLER}/lib -laal2sdk -Wl,-rpath #{VACMAN_CONTROLLER}/lib"
 
 if find_library('aal2sdk', 'AAL2DPXInit', "#{VACMAN_CONTROLLER}/lib")
