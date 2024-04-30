@@ -18,4 +18,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'simplecov'
   s.add_development_dependency 'byebug'
   s.add_development_dependency 'code_counter'
+
+  s.metadata['rubygems_mfa_required'] = 'true'
 end
